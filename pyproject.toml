@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "hercule"
+version = "0.0.1"
+description = "Put your browser under steroïds"
+authors = ["Henri Chabert <chabhenrib@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.115.5"
+sqlalchemy = "^2.0.36"
+gunicorn = "^23.0.0"
+pydantic-settings = "^2.6.1"
+pytest = "^8.3.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
