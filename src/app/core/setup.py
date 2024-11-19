@@ -3,8 +3,10 @@ from fastapi import FastAPI, APIRouter
 from collections.abc import AsyncGenerator, Callable
 from contextlib import _AsyncGeneratorContextManager, asynccontextmanager
 from .config import AppSettings, DatabaseSettings, EnvironmentSettings, Settings
-from .db.database import Base, async_engine as engine
+from .db.database import Base, async_engine as engine, init_db
+from .logger import logging
 
+logger = logging.getLogger(__name__)
 
 # -------------- database --------------
 async def create_tables() -> None:
@@ -23,8 +25,11 @@ def lifespan_factory(
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator:
+        print("=", isinstance(settings, DatabaseSettings))
         if isinstance(settings, DatabaseSettings) and create_tables_on_start:
-            await create_tables()
+            logger.info("Creating database tables")
+            print("Creating database tables")
+            await init_db()
         yield
 
     return lifespan

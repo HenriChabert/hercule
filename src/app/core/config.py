@@ -8,6 +8,8 @@ current_file_dir = os.path.dirname(os.path.realpath(__file__))
 env_path = os.path.join(current_file_dir, "..", "..", "..", ".env")
 config = Config(env_path)
 
+class ConfigSettings(BaseSettings):
+    CONFIG_DIR: str = os.path.expanduser(os.path.expanduser(config("CONFIG_DIR", default=current_file_dir)))
 
 class AppSettings(BaseSettings):
   APP_NAME: str = config("APP_NAME", default="FastAPI app")
@@ -27,10 +29,15 @@ class DatabaseSettings(BaseSettings):
 class TestSettings(BaseSettings):
   SQLITE_URI_TEST: str = config("SQLITE_URI_TEST", default="./sql_app_test.db")
 
-class SQLiteSettings(DatabaseSettings):
-  SQLITE_URI: str = config("SQLITE_URI", default="./sql_app.db")
+class SQLiteSettings(BaseSettings):
+  SQLITE_DB_NAME: str = config("SQLITE_DB_NAME", default="sql_app.db")
   SQLITE_SYNC_PREFIX: str = config("SQLITE_SYNC_PREFIX", default="sqlite:///")
   SQLITE_ASYNC_PREFIX: str = config("SQLITE_ASYNC_PREFIX", default="sqlite+aiosqlite:///")
+
+  @property
+  def SQLITE_URI(self) -> str:
+    config_settings = ConfigSettings()
+    return f"{config_settings.CONFIG_DIR}/{self.SQLITE_DB_NAME}"
 
 
 class EnvironmentOption(Enum):
@@ -43,6 +50,8 @@ class EnvironmentSettings(BaseSettings):
     ENVIRONMENT: EnvironmentOption = config("ENVIRONMENT", default=EnvironmentOption.LOCAL)
 
 class Settings(
+    ConfigSettings,
+    DatabaseSettings,
     AppSettings,
     SQLiteSettings,
     TestSettings,
