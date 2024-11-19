@@ -15,7 +15,13 @@ class WebhookCRUD:
         self.db.add(webhook)
         await self.db.commit()
         await self.db.refresh(webhook)
-        return WebhookRead.model_validate(webhook)
+        return WebhookRead(
+            id=webhook.id,
+            name=webhook.name,
+            url=webhook.url,
+            created_at=webhook.created_at,
+            updated_at=webhook.updated_at,
+        )
 
     async def read(self, webhook_id: str) -> WebhookRead:
         webhook = await self.db.get(Webhook, webhook_id)

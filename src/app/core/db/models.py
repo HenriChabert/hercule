@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, MappedAsDataclass
 
 class UUIDMixin(MappedAsDataclass, kw_only=True):
     id: Mapped[uuid_pkg.UUID] = mapped_column(
-        UUID, primary_key=True, default_factory=uuid_pkg.uuid4, server_default=text("gen_random_uuid()"), kw_only=True
+        UUID, primary_key=True, default_factory=uuid_pkg.uuid4, kw_only=True
     )
 
 class TimestampMixin(MappedAsDataclass, kw_only=True):

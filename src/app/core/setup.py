@@ -25,10 +25,8 @@ def lifespan_factory(
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator:
-        print("=", isinstance(settings, DatabaseSettings))
         if isinstance(settings, DatabaseSettings) and create_tables_on_start:
             logger.info("Creating database tables")
-            print("Creating database tables")
             await init_db()
         yield
 

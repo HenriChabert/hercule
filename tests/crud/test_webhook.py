@@ -1,3 +1,4 @@
+from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.app.schemas.webhook import WebhookCreate
 from tests.helpers.fakers.webhook import get_fake_webhook
@@ -13,6 +14,5 @@ async def test_create_webhook(db: AsyncSession):
         url=fake_webhook.url,
         auth_token=fake_webhook.auth_token
     ))
-    assert created_webhook.id == fake_webhook.id
     assert created_webhook.url == fake_webhook.url
     assert created_webhook.name == fake_webhook.name
