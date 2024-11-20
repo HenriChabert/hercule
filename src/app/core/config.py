@@ -1,11 +1,17 @@
 import os
 from enum import Enum
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.config import Config
 
+
 current_file_dir = os.path.dirname(os.path.realpath(__file__))
-env_path = os.path.join(current_file_dir, "..", "..", "..", ".env")
+
+env_filename = ".env"
+if os.environ.get("ENVIRONMENT") == "test":
+  env_filename = ".env.test"
+
+env_path = os.path.join(current_file_dir, "..", "..", "..", env_filename)
 config = Config(env_path)
 
 class ConfigSettings(BaseSettings):
@@ -22,6 +28,8 @@ class AppSettings(BaseSettings):
 class SecuritySettings(BaseSettings):
   HERCULE_PORT: int = config("HERCULE_PORT", default=8000)
   HERCULE_PWD: str = config("HERCULE_PWD", default="")
+  HERCULE_SECRET_KEY: str = config("HERCULE_SECRET_KEY", default="")
+  HERCULE_HEADER_NAME: str = config("HERCULE_HEADER_NAME", default="X-Hercule-Secret-Key")
 
 class DatabaseSettings(BaseSettings):
   pass
@@ -41,24 +49,30 @@ class SQLiteSettings(BaseSettings):
 
 
 class EnvironmentOption(Enum):
-    LOCAL = "local"
-    STAGING = "staging"
-    PRODUCTION = "production"
+  TEST = "test"
+  DEV = "dev"
+  LOCAL = "local"
+  STAGING = "staging"
+  PRODUCTION = "production"
 
 
 class EnvironmentSettings(BaseSettings):
-    ENVIRONMENT: EnvironmentOption = config("ENVIRONMENT", default=EnvironmentOption.LOCAL)
+  ENVIRONMENT: EnvironmentOption = config("ENVIRONMENT", default=EnvironmentOption.LOCAL)
 
 class Settings(
-    ConfigSettings,
-    DatabaseSettings,
-    AppSettings,
-    SQLiteSettings,
-    TestSettings,
-    SecuritySettings,
-    EnvironmentSettings
-    
+  ConfigSettings,
+  DatabaseSettings,
+  AppSettings,
+  SQLiteSettings,
+  TestSettings,
+  SecuritySettings,
+  EnvironmentSettings,
+  BaseSettings
 ):
-    pass
+  model_config = SettingsConfigDict(
+    env_file = ".env",
+    extra='ignore'
+  )
+
 
 settings = Settings()

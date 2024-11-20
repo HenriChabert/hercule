@@ -56,6 +56,10 @@ def test_list_webhooks(db_sync: Session, client: TestClient):
     assert len(data) >= 2
     assert isinstance(data, list)
 
+def test_list_webhooks_no_key(client_no_key: TestClient):
+    response = client_no_key.get("/api/v1/webhooks")
+    assert response.status_code == 403
+
 def test_update_webhook_success(db_sync: Session, client: TestClient):
     # First create a webhook
     webhook = webhook_faker.create_fake(db_sync)

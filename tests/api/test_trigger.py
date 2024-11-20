@@ -58,6 +58,10 @@ def test_list_triggers(db_sync: Session, client: TestClient):
     assert len(data) == 2
     assert isinstance(data, list)
 
+def test_list_triggers_no_key(client_no_key: TestClient):
+    response = client_no_key.get("/api/v1/triggers")
+    assert response.status_code == 403
+
 def test_update_trigger_success(db_sync: Session, client: TestClient):
     # First create a trigger
     trigger = trigger_faker.create_fake(db_sync)
@@ -95,3 +99,23 @@ def test_delete_trigger_success(db_sync: Session, client: TestClient):
 def test_delete_trigger_not_found(client: TestClient):
     response = client.delete(f"/api/v1/trigger/{uuid4()}")
     assert response.status_code == 404
+
+def test_trigger_trigger_success(db_sync: Session, client: TestClient, test_api_url: str):
+
+    webhook = webhook_faker.create_fake(db_sync, {
+        "url": f"{test_api_url}/test_webhook",
+    })
+
+    trigger = trigger_faker.create_fake(db_sync, {
+        "webhook_id": webhook.id,
+    })
+
+    payload = {"test": "payload"}
+
+    response = client.post(f"/api/v1/trigger/{trigger.id}/trigger", json={
+        "payload": payload
+    })
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "ok"

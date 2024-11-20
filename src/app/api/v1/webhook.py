@@ -7,8 +7,9 @@ from typing import Annotated
 from src.app.schemas.webhook import WebhookCreate, WebhookUpdate
 from src.app.controllers.webhook import WebhookController
 from src.app.core.db.database import async_get_db
+from src.app.api.dependencies import check_secret_key_header
 
-router = APIRouter(tags=["webhook"])
+router = APIRouter(tags=["webhook"], dependencies=[Depends(check_secret_key_header)])
 
 @router.post("/webhook", status_code=status.HTTP_201_CREATED)
 async def create_webhook(webhook: WebhookCreate, db: Annotated[AsyncSession, Depends(async_get_db)]):

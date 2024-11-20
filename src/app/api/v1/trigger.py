@@ -2,13 +2,14 @@ from fastapi import APIRouter, status
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends
-from typing import Annotated
+from typing import Annotated, Mapping, Any
 
 from src.app.schemas.trigger import TriggerCreate, TriggerUpdate
 from src.app.controllers.trigger import TriggerController
 from src.app.core.db.database import async_get_db
+from src.app.api.dependencies import check_secret_key_header
 
-router = APIRouter(tags=["trigger"])
+router = APIRouter(tags=["trigger"], dependencies=[Depends(check_secret_key_header)])
 
 @router.post("/trigger", status_code=status.HTTP_201_CREATED)
 async def create_trigger(trigger: TriggerCreate, db: Annotated[AsyncSession, Depends(async_get_db)]):
@@ -34,3 +35,8 @@ async def update_trigger(trigger_id: str, trigger: TriggerUpdate, db: Annotated[
 async def delete_trigger(trigger_id: str, db: Annotated[AsyncSession, Depends(async_get_db)]):
     trigger_ctrl = TriggerController(db)
     return await trigger_ctrl.delete(trigger_id)
+
+@router.post("/trigger/{trigger_id}/trigger")
+async def trigger_trigger(trigger_id: str, payload: Mapping[str, Any], db: Annotated[AsyncSession, Depends(async_get_db)]):
+    trigger_ctrl = TriggerController(db)
+    return await trigger_ctrl.trigger(trigger_id, payload)

@@ -26,16 +26,11 @@ class TriggerFaker(BaseFaker[models.Trigger]):
 
     def create_fake(self, db: Session, fields: TriggerFields | None = None) -> models.Trigger:
         webhook_faker = WebhookFaker()
-        webhook_fields = None
-        if fields and "webhook_id" in fields:
-            webhook_fields = WebhookFields(id=fields["webhook_id"])
-        webhook = webhook_faker.create_fake(db, webhook_fields)
-
         if fields is None:
-            fields = TriggerFields(
-                webhook_id=webhook.id
-            )
-        else:
+            fields = TriggerFields()
+
+        if not "webhook_id" in fields:
+            webhook = webhook_faker.create_fake(db, WebhookFields())
             fields["webhook_id"] = webhook.id
 
         return self.create_fake_object(db, self.get_fake, fields)
