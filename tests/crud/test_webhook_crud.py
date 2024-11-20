@@ -11,8 +11,7 @@ async def test_create_webhook(db: AsyncSession):
     webhook_crud = WebhookCRUD(db)
     created_webhook = await webhook_crud.create(WebhookCreate(
         name=fake_webhook.name,
-        url=fake_webhook.url,
-        auth_token=fake_webhook.auth_token
+        url=fake_webhook.url
     ))
     assert created_webhook.url == fake_webhook.url
     assert created_webhook.name == fake_webhook.name

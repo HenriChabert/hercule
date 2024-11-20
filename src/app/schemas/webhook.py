@@ -1,32 +1,53 @@
 from typing import Annotated
+from functools import wraps
 
 from pydantic import BaseModel, Field
 
-from ..core.schemas import TimestampSchema, UUIDSchema
+from ..core.schemas import TimestampSchema, IDSchema
+from ..core.sentinel import NOT_PROVIDED
 
-name_field = Field(..., description="The name of the webhook", examples=["My Webhook"])
-url_field = Field(..., description="The URL of the webhook", pattern=r"^https?://.*$", examples=["https://example.com"])
-auth_token_field = Field(..., description="The auth token of the webhook", examples=["sijwdnu3"])
+@wraps(Field)
+def name_field_factory(**kwargs):
+    return Field(description="The name of the webhook", examples=["My Webhook"], **kwargs)
+
+@wraps(Field)
+def url_field_factory(**kwargs):
+    return Field(description="The URL of the webhook", pattern=r"^https?://.*$", examples=["https://example.com"], **kwargs)
+
+@wraps(Field)
+def auth_token_field_factory(**kwargs):
+    return Field(description="The auth token of the webhook", examples=["sijwdnu3"], **kwargs)
 
 class WebhookBase(BaseModel):
-    name: Annotated[str, name_field]
-    url: Annotated[str, url_field]
+    model_config = {
+        "from_attributes": False
+    }
 
-class Webhook(WebhookBase, UUIDSchema, TimestampSchema):
+    name: Annotated[str, name_field_factory()]
+    url: Annotated[str, url_field_factory()]
+
+class WebhookBaseSecured(WebhookBase):
+    auth_token: Annotated[str, auth_token_field_factory()]
+
+class Webhook(WebhookBaseSecured, IDSchema, TimestampSchema):
     pass
 
-class WebhookRead(Webhook):
+class WebhookUnsafe(WebhookBase, IDSchema, TimestampSchema):
     pass
 
+class WebhookRead(WebhookUnsafe):
+    pass
+    
 class WebhookReadSecured(Webhook):
-    auth_token: Annotated[str, auth_token_field]
+    pass
 
 class WebhookCreate(WebhookBase):
-    auth_token: Annotated[str, auth_token_field]
+    pass
 
-class WebhookUpdate(WebhookBase):
-    url: Annotated[str, url_field]
+class WebhookUpdate(BaseModel):
+    name: Annotated[str, name_field_factory(default=NOT_PROVIDED)]
+    url: Annotated[str, url_field_factory(default=NOT_PROVIDED)]
 
-class WebhookDelete(UUIDSchema):
+class WebhookDelete(IDSchema):
     pass
 

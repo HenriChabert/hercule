@@ -5,8 +5,8 @@ from typing import Any
 from pydantic import BaseModel, Field, field_serializer
 
 # -------------- mixins --------------
-class UUIDSchema(BaseModel):
-    id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4)
+class IDSchema(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid_pkg.uuid4()))
 
 
 class TimestampSchema(BaseModel):

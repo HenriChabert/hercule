@@ -19,6 +19,7 @@ pytest-mock = "^3.14.0"
 pytest-asyncio = "^0.24.0"
 python-dotenv = "^1.0.1"
 greenlet = "^3.1.1"
+sqlmodel = "^0.0.22"
 
 
 [build-system]

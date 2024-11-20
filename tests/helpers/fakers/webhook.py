@@ -1,14 +1,18 @@
 import datetime
 
 import uuid as uuid_pkg
+from sqlalchemy.orm.session import Session
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import cast, TypedDict, NotRequired
+from typing import Any, Callable, cast, TypedDict, NotRequired, TypeVar, Mapping
 
-from src.app import models
+from src.app.core.db.database import Base
+from src.app import models, schemas
 from tests.conftest import fake
 
+T = TypeVar("T", bound=Base)
+
 class WebhookDict(TypedDict):
-    id: NotRequired[uuid_pkg.UUID]
+    id: NotRequired[str]
     name: NotRequired[str]
     auth_token: NotRequired[str]
     url: NotRequired[str]
@@ -20,7 +24,7 @@ def get_fake_webhook(fields: WebhookDict | None = None) -> models.Webhook:
         fields = WebhookDict()
 
     return models.Webhook(
-        id=fields.get("id", cast(uuid_pkg.UUID, fake.uuid4())),
+        id=fields.get("id", str(fake.uuid4())),
         name=fields.get("name", fake.name()),
         auth_token=fields.get("auth_token", cast(str, fake.uuid4())),
         url=fields.get("url", fake.url()),
@@ -28,9 +32,23 @@ def get_fake_webhook(fields: WebhookDict | None = None) -> models.Webhook:
         updated_at=fields.get("updated_at", datetime.datetime.now()),
     )
 
-async def create_fake_webhook(db: AsyncSession, fields: WebhookDict | None = None) -> models.Webhook:
-    webhook = get_fake_webhook(fields)
-    db.add(webhook)
-    await db.commit()
-    await db.refresh(webhook)
-    return webhook
+def create_fake_webhook(db: Session, fields: WebhookDict | None = None) -> models.Webhook:
+    return create_fake_object(db, get_fake_webhook, fields)
+
+async def create_fake_webhook_async(db: AsyncSession, fields: WebhookDict | None = None) -> models.Webhook:
+    return await create_fake_object_async(db, get_fake_webhook, fields)
+
+def create_fake_object(db: Session, fn: Callable[[Any], T], fields: Any | None = None) -> T:
+    obj = fn(fields)
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+    return obj
+
+async def create_fake_object_async(db: AsyncSession, fn: Callable[[Any], T], fields: Any | None = None) -> T:
+    obj = fn(fields)
+    async with db as session:
+        session.add(obj)
+        await session.commit()
+        await session.refresh(obj)
+    return obj

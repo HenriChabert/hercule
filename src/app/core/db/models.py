@@ -1,13 +1,12 @@
 import uuid as uuid_pkg
 from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, Column, DateTime, text, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import DateTime, String, text, func
 from sqlalchemy.orm import Mapped, mapped_column, MappedAsDataclass
 
-class UUIDMixin(MappedAsDataclass, kw_only=True):
-    id: Mapped[uuid_pkg.UUID] = mapped_column(
-        UUID, primary_key=True, default_factory=uuid_pkg.uuid4, kw_only=True
+class IDMixin(MappedAsDataclass, kw_only=True):
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default_factory=lambda: str(uuid_pkg.uuid4()), kw_only=True
     )
 
 class TimestampMixin(MappedAsDataclass, kw_only=True):

@@ -5,9 +5,9 @@ from sqlalchemy import DateTime, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..core.db.database import Base
-from ..core.db.models import UUIDMixin, TimestampMixin
+from ..core.db.models import IDMixin, TimestampMixin
 
-class Webhook(Base, UUIDMixin, TimestampMixin, kw_only=True):
+class Webhook(Base, IDMixin, TimestampMixin, kw_only=True):
     __tablename__ = "webhooks"
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)

@@ -5,8 +5,9 @@ from sqlalchemy import DateTime, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..core.db.database import Base
-from ..core.db.models import UUIDMixin, TimestampMixin
-class Trigger(Base, UUIDMixin, TimestampMixin, kw_only=True):
+from ..core.db.models import IDMixin, TimestampMixin
+
+class Trigger(Base, IDMixin, TimestampMixin, kw_only=True):
     __tablename__ = "triggers"
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)

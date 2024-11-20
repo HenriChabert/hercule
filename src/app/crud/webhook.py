@@ -1,50 +1,72 @@
+from uuid import uuid4
 from fastapi import HTTPException
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..schemas.webhook import WebhookCreate, WebhookUpdate, WebhookRead
-from ..models.webhook import Webhook
+from ..schemas.webhook import Webhook as WebhookSchema, WebhookCreate, WebhookUpdate, WebhookRead
+from ..models.webhook import Webhook as WebhookModel
+from .base import BaseCRUD
 
 
-class WebhookCRUD:
+class WebhookCRUD(BaseCRUD[WebhookSchema, WebhookModel]):
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create(self, data: WebhookCreate) -> WebhookRead:
-        webhook = Webhook(**data.model_dump())
+    def model_to_schema(self, model: WebhookModel) -> WebhookSchema:
+        model_dump = {
+            "id": model.id,
+            "name": model.name,
+            "url": model.url,
+            "auth_token": model.auth_token,
+            "created_at": model.created_at,
+            "updated_at": model.updated_at,
+        }
+        return WebhookSchema.model_validate(model_dump)
+
+    async def create(self, data: WebhookCreate) -> WebhookSchema:
+        webhook = WebhookModel(**data.model_dump())
+
+        auth_token = str(uuid4())
+        webhook.auth_token = auth_token
+
         self.db.add(webhook)
         await self.db.commit()
         await self.db.refresh(webhook)
-        return WebhookRead(
-            id=webhook.id,
-            name=webhook.name,
-            url=webhook.url,
-            created_at=webhook.created_at,
-            updated_at=webhook.updated_at,
-        )
 
-    async def read(self, webhook_id: str) -> WebhookRead:
-        webhook = await self.db.get(Webhook, webhook_id)
+        return self.model_to_schema(webhook)
+
+    async def read(self, webhook_id: str) -> WebhookSchema:
+        webhook = await self.db.get(WebhookModel, webhook_id)
         if not webhook:
             raise HTTPException(status_code=404, detail="Webhook not found")
-        return WebhookRead.model_validate(webhook)
+        
+        return self.model_to_schema(webhook)
 
-    async def list(self) -> list[WebhookRead]:
-        webhooks = await self.db.execute(select(Webhook))
-        return [WebhookRead.model_validate(webhook) for webhook in webhooks]
+    async def list(self) -> list[WebhookSchema]:
+        webhooks_pydantic = []
+        webhooks = await self.db.execute(select(WebhookModel))
+        for webhook in webhooks:
+            webhook_pydantic = self.model_to_schema(webhook[0])
+            webhooks_pydantic.append(webhook_pydantic)
+        return webhooks_pydantic
 
-    async def update(self, webhook_id: str, data: WebhookUpdate) -> WebhookRead:
-        webhook = await self.db.get(Webhook, webhook_id)
+    async def update(self, webhook_id: str, data: WebhookUpdate) -> WebhookSchema:
+        webhook = await self.db.get(WebhookModel, webhook_id)
         if not webhook:
             raise HTTPException(status_code=404, detail="Webhook not found")
-        webhook.name = data.name
-        webhook.url = data.url
+        
+        provided_params = self.only_provided_params(data)
+        for key, value in provided_params.items():
+            if hasattr(webhook, key):
+                setattr(webhook, key, value)
+
         await self.db.commit()
         await self.db.refresh(webhook)
-        return WebhookRead.model_validate(webhook)
+        return self.model_to_schema(webhook)
 
     async def delete(self, webhook_id: str):
-        webhook = await self.db.get(Webhook, webhook_id)
+        webhook = await self.db.get(WebhookModel, webhook_id)
         if not webhook:
             raise HTTPException(status_code=404, detail="Webhook not found")
         await self.db.delete(webhook)
