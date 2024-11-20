@@ -16,8 +16,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app.core.db.database import Base, reinit_db, clean_db, async_get_db, sync_get_db, async_engine, sync_engine
 
-fake = Faker()
-
 @pytest.fixture(autouse=True)
 def reset_db_each_test():
     reinit_db()
@@ -40,7 +38,7 @@ def db_sync() -> Generator[Session, Any, None]:
     yield session
     session.close()
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture # type: ignore
 async def db() -> AsyncSession:
     session_gen = async_get_db()
     session = await anext(session_gen)

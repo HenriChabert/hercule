@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Any
 from functools import wraps
 
 from pydantic import BaseModel, Field
@@ -7,15 +7,15 @@ from ..core.schemas import TimestampSchema, IDSchema
 from ..core.sentinel import NOT_PROVIDED
 
 @wraps(Field)
-def name_field_factory(**kwargs):
+def name_field_factory(**kwargs: Any):
     return Field(description="The name of the webhook", examples=["My Webhook"], **kwargs)
 
 @wraps(Field)
-def url_field_factory(**kwargs):
+def url_field_factory(**kwargs: Any):
     return Field(description="The URL of the webhook", pattern=r"^https?://.*$", examples=["https://example.com"], **kwargs)
 
 @wraps(Field)
-def auth_token_field_factory(**kwargs):
+def auth_token_field_factory(**kwargs: Any):
     return Field(description="The auth token of the webhook", examples=["sijwdnu3"], **kwargs)
 
 class WebhookBase(BaseModel):
@@ -47,7 +47,3 @@ class WebhookCreate(WebhookBase):
 class WebhookUpdate(BaseModel):
     name: Annotated[str, name_field_factory(default=NOT_PROVIDED)]
     url: Annotated[str, url_field_factory(default=NOT_PROVIDED)]
-
-class WebhookDelete(IDSchema):
-    pass
-

@@ -1,7 +1,7 @@
 import uuid as uuid_pkg
-from datetime import UTC, datetime
+from datetime import datetime
 
-from sqlalchemy import DateTime, String, text, func
+from sqlalchemy import DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column, MappedAsDataclass
 
 class IDMixin(MappedAsDataclass, kw_only=True):

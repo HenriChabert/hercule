@@ -3,7 +3,6 @@ from typing import Any, TypeVar, Generic
 from abc import ABC, abstractmethod
 from pydantic import BaseModel
 from src.app.core.db.database import Base
-from typing import Mapping
 from src.app.core.sentinel import NOT_PROVIDED
 
 SchemaType = TypeVar("SchemaType", bound=BaseModel)
@@ -26,8 +25,7 @@ class BaseCRUD(ABC, Generic[SchemaType, ModelType]):
         pass
 
     @abstractmethod
-    async def read(self, id: str) -> SchemaType:
-        pass
+    async def read(self, id: str, raise_exception: bool = False) -> SchemaType | None: ...
 
     @abstractmethod
     async def update(self, id: str, data: Any) -> SchemaType:
