@@ -21,10 +21,10 @@ async_engine = create_async_engine(f"{settings.SQLITE_ASYNC_PREFIX}{DATABASE_URI
 sync_engine = create_engine(f"{settings.SQLITE_SYNC_PREFIX}{DATABASE_URI}", echo=False, future=True)
 
 def create_config_dir_if_not_exists() -> None:
-    if not os.path.exists(settings.CONFIG_DIR):
-        print(f"Creating config directory: {settings.CONFIG_DIR}")
-        logger.info(f"Creating config directory: {settings.CONFIG_DIR}")
-        os.makedirs(settings.CONFIG_DIR, exist_ok=True)
+    if not os.path.exists(settings.ABSOLUTE_CONFIG_DIR):
+        print(f"Creating config directory: {settings.ABSOLUTE_CONFIG_DIR}")
+        logger.info(f"Creating config directory: {settings.ABSOLUTE_CONFIG_DIR}")
+        os.makedirs(settings.ABSOLUTE_CONFIG_DIR, exist_ok=True)
 
 def clean_db() -> None:
     if os.path.exists(settings.SQLITE_URI):

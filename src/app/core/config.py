@@ -15,7 +15,8 @@ env_path = os.path.join(current_file_dir, "..", "..", "..", env_filename)
 config = Config(env_path)
 
 class ConfigSettings(BaseSettings):
-    CONFIG_DIR: str = os.path.expanduser(os.path.expanduser(config("CONFIG_DIR", default=current_file_dir)))
+  CONFIG_DIR: str = config("CONFIG_DIR", default=current_file_dir)
+  ABSOLUTE_CONFIG_DIR: str = os.path.expanduser(os.path.expanduser(config("CONFIG_DIR", default=current_file_dir)))
 
 class AppSettings(BaseSettings):
   APP_NAME: str = config("APP_NAME", default="FastAPI app")
@@ -45,7 +46,7 @@ class SQLiteSettings(BaseSettings):
   @property
   def SQLITE_URI(self) -> str:
     config_settings = ConfigSettings()
-    return f"{config_settings.CONFIG_DIR}/{self.SQLITE_DB_NAME}"
+    return f"{config_settings.ABSOLUTE_CONFIG_DIR}/{self.SQLITE_DB_NAME}"
 
 
 class EnvironmentOption(Enum):
