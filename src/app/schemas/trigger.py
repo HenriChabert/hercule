@@ -1,5 +1,5 @@
 from uuid import uuid4
-from typing import Annotated, Any
+from typing import  Any
 from functools import wraps
 from pydantic import BaseModel, Field
 from ..core.schemas import TimestampSchema, IDSchema
@@ -26,10 +26,10 @@ class TriggerBase(BaseModel):
     model_config = {
         "from_attributes": False
     }
-    webhook_id: Annotated[str, webhook_id_field_factory()]
-    url_regex: Annotated[str, url_regex_field_factory(default=".*")]
-    source: Annotated[TriggerSource, source_field_factory(default="n8n")]
-    name: Annotated[str, name_field_factory()]
+    webhook_id: str = webhook_id_field_factory()
+    url_regex: str = url_regex_field_factory(default=".*")
+    source: TriggerSource = source_field_factory(default="n8n")
+    name: str = name_field_factory()
 
 class Trigger(TriggerBase, IDSchema, TimestampSchema):
     pass
@@ -37,9 +37,13 @@ class Trigger(TriggerBase, IDSchema, TimestampSchema):
 class TriggerRead(Trigger):
     pass
 
+class TriggerCreateClient(TriggerBase):
+    webhook_id: str = webhook_id_field_factory(default=NOT_PROVIDED)
+    webhook_url: str = Field(description="The URL of the webhook", default=NOT_PROVIDED)
+
 class TriggerCreate(TriggerBase):
-    pass
+    webhook_id: str = webhook_id_field_factory(default=NOT_PROVIDED)
 
 class TriggerUpdate(BaseModel):
-    url_regex: Annotated[str, url_regex_field_factory(default=NOT_PROVIDED)]
-    name: Annotated[str, name_field_factory(default=NOT_PROVIDED)]
+    url_regex: str = url_regex_field_factory(default=NOT_PROVIDED)
+    name: str = name_field_factory(default=NOT_PROVIDED)

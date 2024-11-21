@@ -5,6 +5,9 @@ class Sentinel:
 
     def __repr__(self):
         return f"<Sentinel: {self.name}>"
+    
+    def __str__(self):
+        return self.name
 
 # Define a reusable sentinel object
 NOT_PROVIDED = Sentinel("NOT_PROVIDED")

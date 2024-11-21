@@ -2,9 +2,13 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.app.core.sentinel import NOT_PROVIDED
+from src.app.schemas.webhook import WebhookCreate, WebhookBase
+
 from ..models.trigger import Trigger as TriggerModel
-from ..schemas.trigger import Trigger as TriggerSchema, TriggerCreate, TriggerUpdate
+from ..schemas.trigger import Trigger as TriggerSchema, TriggerCreate, TriggerUpdate, TriggerCreateClient
 from .base import BaseCRUD
+from .webhook import WebhookCRUD
 
 from typing import Any
 

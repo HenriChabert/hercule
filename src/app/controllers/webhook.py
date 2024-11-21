@@ -64,6 +64,8 @@ class WebhookController(BaseController[WebhookSchema, WebhookModel]):
             if response.status_code >= 400:
                 raise HTTPException(status_code=response.status_code, detail=response.text)
             
+            print(response.content)
+            print(response.text)
             return response.json()
             
             

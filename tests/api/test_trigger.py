@@ -6,6 +6,8 @@ from src.app.models.trigger import Trigger
 from tests.helpers.fakers.trigger import TriggerFaker
 from tests.helpers.fakers.webhook import WebhookFaker
 
+from src.app.models import Webhook, Trigger
+
 trigger_faker = TriggerFaker()
 webhook_faker = WebhookFaker()
 
@@ -20,9 +22,25 @@ def test_create_trigger_success(db_sync: Session, client: TestClient):
     data = response.json()
     assert data["name"] == trigger.name
     assert data["webhook_id"] == webhook.id
-    assert "id" in data
-    assert "created_at" in data
-    assert "updated_at" in data
+
+    trigger = db_sync.query(Trigger).filter(Trigger.id == data["id"]).first()
+    assert trigger is not None
+    assert trigger.name == trigger.name
+    assert trigger.webhook_id == webhook.id
+
+def test_create_trigger_with_webhook_url(db_sync: Session, client: TestClient):
+    trigger = trigger_faker.get_fake()
+    response = client.post("/api/v1/trigger", json={
+        "name": trigger.name,
+        "webhook_url": "https://example.com",
+    })
+    assert response.status_code == 201
+    data = response.json()
+    assert data["name"] == trigger.name
+
+    webhook = db_sync.query(Webhook).filter(Webhook.url == "https://example.com").first()
+    assert webhook is not None
+    assert data["webhook_id"] == webhook.id
 
 def test_create_trigger_invalid_webhook(client: TestClient):
     fake_trigger = trigger_faker.get_fake()

@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 import sys
 import os
 
@@ -6,6 +7,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.app.seeders.webhook import WebhookSeeder
 from src.app.seeders.trigger import TriggerSeeder
 from src.app.core.db.database import sync_get_db, reinit_db
+
+import click
 
 def seed_database() -> None:
     reinit_db()
@@ -28,5 +31,21 @@ def seed_database() -> None:
 
     session.close()
 
-if __name__ == "__main__":
+@click.group()
+def cli():
+    pass
+
+@cli.command()
+def seed():
+    print("Starting database seeding process...")
     seed_database()
+    print("Database seeding completed successfully!")
+    
+@cli.command()
+def reset():
+    print("Resetting database...")
+    reinit_db()
+    print("Database reset successfully!")
+
+if __name__ == "__main__":
+    cli()

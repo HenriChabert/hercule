@@ -49,7 +49,6 @@ def create_config_dir_if_not_exists() -> None:
 
 def clean_db() -> None:
     if os.path.exists(settings.SQLITE_URI):
-        print(f"Removing database: {settings.SQLITE_URI}")
         os.remove(settings.SQLITE_URI)
     sync_engine.dispose()
 

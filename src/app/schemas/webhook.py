@@ -1,5 +1,6 @@
-from typing import Annotated, Any
+from typing import Any
 from functools import wraps
+import datetime
 
 from pydantic import BaseModel, Field
 
@@ -23,11 +24,11 @@ class WebhookBase(BaseModel):
         "from_attributes": False
     }
 
-    name: Annotated[str, name_field_factory()]
-    url: Annotated[str, url_field_factory()]
+    name: str = name_field_factory(default_factory=lambda: f"Webhook created at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    url: str = url_field_factory()
 
 class WebhookBaseSecured(WebhookBase):
-    auth_token: Annotated[str, auth_token_field_factory()]
+    auth_token: str = auth_token_field_factory()
 
 class Webhook(WebhookBaseSecured, IDSchema, TimestampSchema):
     pass
@@ -45,5 +46,5 @@ class WebhookCreate(WebhookBase):
     pass
 
 class WebhookUpdate(BaseModel):
-    name: Annotated[str, name_field_factory(default=NOT_PROVIDED)]
-    url: Annotated[str, url_field_factory(default=NOT_PROVIDED)]
+    name: str = name_field_factory(default=NOT_PROVIDED)
+    url: str = url_field_factory(default=NOT_PROVIDED)
