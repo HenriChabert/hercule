@@ -100,7 +100,7 @@ def test_delete_trigger_not_found(client: TestClient):
     response = client.delete(f"/api/v1/trigger/{uuid4()}")
     assert response.status_code == 404
 
-def test_trigger_trigger_success(db_sync: Session, client: TestClient, test_api_url: str):
+def test_run_trigger_success(db_sync: Session, client: TestClient, test_api_url: str):
 
     webhook = webhook_faker.create_fake(db_sync, {
         "url": f"{test_api_url}/test_webhook",
@@ -112,7 +112,7 @@ def test_trigger_trigger_success(db_sync: Session, client: TestClient, test_api_
 
     payload = {"test": "payload"}
 
-    response = client.post(f"/api/v1/trigger/{trigger.id}/trigger", json={
+    response = client.post(f"/api/v1/trigger/{trigger.id}/run", json={
         "payload": payload
     })
 

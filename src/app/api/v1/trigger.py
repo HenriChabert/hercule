@@ -36,7 +36,7 @@ async def delete_trigger(trigger_id: str, db: Annotated[AsyncSession, Depends(as
     trigger_ctrl = TriggerController(db)
     return await trigger_ctrl.delete(trigger_id)
 
-@router.post("/trigger/{trigger_id}/trigger")
-async def trigger_trigger(trigger_id: str, payload: Mapping[str, Any], db: Annotated[AsyncSession, Depends(async_get_db)]):
+@router.post("/trigger/{trigger_id}/run")
+async def run_trigger(trigger_id: str, payload: Mapping[str, Any], db: Annotated[AsyncSession, Depends(async_get_db)]):
     trigger_ctrl = TriggerController(db)
     return await trigger_ctrl.trigger(trigger_id, payload)

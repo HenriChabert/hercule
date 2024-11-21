@@ -16,6 +16,8 @@ class TriggerCRUD(BaseCRUD[TriggerSchema, TriggerModel]):
         model_dump = {
             "id": model.id,
             "name": model.name,
+            "source": model.source,
+            "url_regex": model.url_regex,
             "webhook_id": model.webhook_id,
             "created_at": model.created_at,
             "updated_at": model.updated_at,

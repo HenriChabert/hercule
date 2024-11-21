@@ -21,9 +21,11 @@ class TriggerFaker(BaseFaker[models.Trigger]):
         return models.Trigger(
             id=fields.get("id", str(self.fake.uuid4())),
             name=fields.get("name", self.fake.name()),
+            source=fields.get("source", "n8n"),
+            url_regex=fields.get("url_regex", ".*"),
             webhook_id=fields.get("webhook_id", str(self.fake.uuid4()))
         )
-
+    
     def create_fake(self, db: Session, fields: TriggerFields | None = None) -> models.Trigger:
         webhook_faker = WebhookFaker()
         if fields is None:
