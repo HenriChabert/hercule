@@ -14,7 +14,7 @@ from sqlalchemy.orm.session import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app.core.db.database import reinit_db, clean_db, async_get_db, sync_get_db, sync_engine
-from .helpers.test_api.main import create_test_client, run_test_server, find_free_port
+from .helpers.test_api.main import create_test_client, run_test_server, find_free_port, stop_test_server
 
 from src.app.core.config import settings
 
@@ -40,9 +40,8 @@ def test_api_url():
     yield base_url
 
     # Stop the server after tests
-    server_thread.join(timeout=1)
-    if server_thread.is_alive():
-        raise RuntimeError("Test server did not shut down correctly.")
+    stop_test_server(server_thread)
+
 
 @pytest.fixture(scope="session")
 def client() -> Generator[TestClient, Any, None]:
@@ -72,7 +71,7 @@ def db_sync() -> Generator[Session, Any, None]:
     yield session
     session.close()
 
-@pytest_asyncio.fixture # type: ignore
+@pytest_asyncio.fixture(scope="function") # type: ignore
 async def db() -> AsyncSession:
     session_gen = async_get_db()
     session = await anext(session_gen)

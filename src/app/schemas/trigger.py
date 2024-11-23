@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 from ..core.schemas import TimestampSchema, IDSchema
 from ..core.sentinel import NOT_PROVIDED
 from ..models.trigger import TriggerSource
-
+from ..types.events import EventType
 @wraps(Field)
 def url_regex_field_factory(**kwargs: Any):
     return Field(description="The URL regex of the trigger", examples=[".*", "https://example.com", "https://example.com/.*"], **kwargs)
@@ -22,6 +22,10 @@ def webhook_id_field_factory(**kwargs: Any):
 def source_field_factory(**kwargs: Any):
     return Field(description="The source of the trigger", examples=["n8n", "zapier"], **kwargs)
 
+@wraps(Field)
+def event_field_factory(**kwargs: Any):
+    return Field(description="The event triggering the trigger", examples=["page_created", "button_clicked"], **kwargs)
+
 class TriggerBase(BaseModel):
     model_config = {
         "from_attributes": False
@@ -29,6 +33,7 @@ class TriggerBase(BaseModel):
     webhook_id: str = webhook_id_field_factory()
     url_regex: str = url_regex_field_factory(default=".*")
     source: TriggerSource = source_field_factory(default="n8n")
+    event: EventType = event_field_factory(default="button_clicked")
     name: str = name_field_factory()
 
 class Trigger(TriggerBase, IDSchema, TimestampSchema):
@@ -47,3 +52,4 @@ class TriggerCreate(TriggerBase):
 class TriggerUpdate(BaseModel):
     url_regex: str = url_regex_field_factory(default=NOT_PROVIDED)
     name: str = name_field_factory(default=NOT_PROVIDED)
+    event: str = event_field_factory(default=NOT_PROVIDED)

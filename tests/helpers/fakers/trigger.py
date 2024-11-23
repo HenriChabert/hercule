@@ -1,15 +1,19 @@
 import datetime
+import random as rd
 from sqlalchemy.orm import Session
 from typing import cast, TypedDict, NotRequired
 from src.app import models
 from .base import BaseFaker
 from .webhook import WebhookFaker, WebhookFields
+from src.app.models.trigger import TriggerSource, EventType
 
 
 class TriggerFields(TypedDict):
     id: NotRequired[str]
     name: NotRequired[str]
     webhook_id: NotRequired[str]
+    source: NotRequired[TriggerSource]
+    event: NotRequired[EventType]
     created_at: NotRequired[datetime.datetime]
     updated_at: NotRequired[datetime.datetime]
 
@@ -23,6 +27,7 @@ class TriggerFaker(BaseFaker[models.Trigger]):
             name=fields.get("name", self.fake.name()),
             source=fields.get("source", "n8n"),
             url_regex=fields.get("url_regex", ".*"),
+            event=fields.get("event", rd.choice(["page_opened", "button_clicked"])),
             webhook_id=fields.get("webhook_id", str(self.fake.uuid4()))
         )
     

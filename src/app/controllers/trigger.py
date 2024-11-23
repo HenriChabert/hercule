@@ -1,12 +1,14 @@
 from fastapi import HTTPException
-from typing import Mapping, Any, overload, Literal
+from typing import Mapping, Any, overload, Literal, List, TypedDict
 from src.app.controllers.base import BaseController
-from src.app.controllers.webhook import WebhookController
+from src.app.controllers.webhook import WebhookController, WebhookCallResult
 from src.app.core.sentinel import NOT_PROVIDED
 from src.app.schemas.trigger import TriggerCreateClient, TriggerCreate, Trigger as TriggerSchema, TriggerUpdate
 from src.app.schemas.webhook import WebhookCreate
 from src.app.models.trigger import Trigger as TriggerModel
 from src.app.crud.trigger import TriggerCRUD
+from src.app.types.actions import Action
+from src.app.types.events import EventType, EventContext
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -42,8 +44,8 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
     async def read(self, trigger_id: str, raise_exception: bool = False) -> TriggerSchema | None:
         return await self.crud.read(trigger_id, raise_exception)
     
-    async def list(self) -> list[TriggerSchema]:
-        return await self.crud.list()
+    async def list(self, event: EventType | None = None) -> list[TriggerSchema]:
+        return await self.crud.list(event=event)
     
     async def update(self, trigger_id: str, trigger: TriggerUpdate) -> TriggerSchema:
         return await self.crud.update(trigger_id, trigger)
@@ -51,7 +53,20 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
     async def delete(self, trigger_id: str) -> None:
         return await self.crud.delete(trigger_id)
     
-    async def trigger(self, trigger_id: str, payload: Mapping[str, Any]) -> None:
+    async def trigger(self, trigger_id: str, payload: Mapping[str, Any]) -> WebhookCallResult:
         trigger = await self.read(trigger_id, raise_exception=True)
         webhook_ctrl = WebhookController(self.db)
         return await webhook_ctrl.call(trigger.webhook_id, payload)
+    
+    async def trigger_event(self, event: EventType, context: EventContext) -> List[WebhookCallResult]:
+        triggers_results: list[WebhookCallResult] = []
+        if 'trigger_id' in context:
+            triggers = [await self.read(context['trigger_id'], raise_exception=True)]
+        else:
+            triggers = await self.list(event=event)
+
+        for trigger in triggers:
+            trigger_result = await self.trigger(trigger.id, context)
+            triggers_results.append(trigger_result)
+            
+        return triggers_results

@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field
 from ..core.schemas import TimestampSchema, IDSchema
 from ..core.sentinel import NOT_PROVIDED
 
+
+
 @wraps(Field)
 def name_field_factory(**kwargs: Any):
     return Field(description="The name of the webhook", examples=["My Webhook"], **kwargs)

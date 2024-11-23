@@ -14,8 +14,13 @@ def run_test_server(app: FastAPI, host: str, port: int):
     thread.start()
 
     # Wait for the server to start
-    sleep(1)
+    while not server.started:
+        sleep(0.1)
+    
     return thread
+
+def stop_test_server(thread: threading.Thread):
+    thread.join(timeout=.1)
 
 def find_free_port() -> int:
     import socket

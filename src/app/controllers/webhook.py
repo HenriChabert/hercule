@@ -13,7 +13,13 @@ from src.app.models.webhook import Webhook as WebhookModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.app.crud.webhook import WebhookCRUD
 
-from typing import Mapping, Any, overload, Literal, cast
+from typing import Mapping, Any, overload, Literal, cast, TypedDict
+
+from src.app.types.actions import Action
+
+class WebhookCallResult(TypedDict):
+    status: int
+    actions: list[Action]
 
 class WebhookController(BaseController[WebhookSchema, WebhookModel]):
     def __init__(self, db: AsyncSession):
@@ -47,7 +53,7 @@ class WebhookController(BaseController[WebhookSchema, WebhookModel]):
         key = cast(str, hmac.new(auth_token.encode(), payload_json.encode(), hashlib.sha256).hexdigest()) # type: ignore
         return key
     
-    async def call(self, webhook_id: str, payload: Mapping[str, Any]) -> None:
+    async def call(self, webhook_id: str, payload: Mapping[str, Any]) -> WebhookCallResult:
         webhook = await self.read(webhook_id, raise_exception=True)
         async with httpx.AsyncClient() as client:
             auth_key = self.create_auth_key(webhook.auth_token, payload)
@@ -64,8 +70,6 @@ class WebhookController(BaseController[WebhookSchema, WebhookModel]):
             if response.status_code >= 400:
                 raise HTTPException(status_code=response.status_code, detail=response.text)
             
-            print(response.content)
-            print(response.text)
             return response.json()
             
             

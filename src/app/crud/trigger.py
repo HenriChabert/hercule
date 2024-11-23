@@ -7,6 +7,7 @@ from src.app.schemas.webhook import WebhookCreate, WebhookBase
 
 from ..models.trigger import Trigger as TriggerModel
 from ..schemas.trigger import Trigger as TriggerSchema, TriggerCreate, TriggerUpdate, TriggerCreateClient
+from ..types.events import EventType
 from .base import BaseCRUD
 from .webhook import WebhookCRUD
 
@@ -22,6 +23,7 @@ class TriggerCRUD(BaseCRUD[TriggerSchema, TriggerModel]):
             "name": model.name,
             "source": model.source,
             "url_regex": model.url_regex,
+            "event": model.event,
             "webhook_id": model.webhook_id,
             "created_at": model.created_at,
             "updated_at": model.updated_at,
@@ -41,8 +43,13 @@ class TriggerCRUD(BaseCRUD[TriggerSchema, TriggerModel]):
             raise HTTPException(status_code=404, detail="Trigger not found")
         return self.model_to_schema(trigger) if trigger else None
 
-    async def list(self, **kwargs: Any) -> list[TriggerSchema]:
-        triggers = await self.db.execute(select(TriggerModel))
+    async def list(self, event: EventType | None = None, **kwargs: Any) -> list[TriggerSchema]:
+        query = select(TriggerModel)
+        if event:
+            query = query.where(TriggerModel.event == event)
+
+        triggers = await self.db.execute(query)
+        
         return [self.model_to_schema(trigger[0]) for trigger in triggers]
 
 

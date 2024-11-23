@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from ..core.db.database import Base, ModelMixin
 from ..core.db.models import IDMixin, TimestampMixin
+from ..types.events import EventType
 
 TriggerSource: TypeAlias = Literal["n8n", "zapier"]
 
@@ -15,6 +16,7 @@ class Trigger(Base, ModelMixin, IDMixin, TimestampMixin, kw_only=True):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     webhook_id: Mapped[str] = mapped_column(ForeignKey("webhooks.id"))
     source: Mapped[TriggerSource] = mapped_column(String(255), nullable=False)
+    event: Mapped[EventType] = mapped_column(String(255), nullable=False)
     url_regex: Mapped[str] = mapped_column(String(255), nullable=True, default=None)
 
     

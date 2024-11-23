@@ -76,6 +76,21 @@ def test_list_triggers(db_sync: Session, client: TestClient):
     assert len(data) == 2
     assert isinstance(data, list)
 
+def test_list_triggers_with_event(db_sync: Session, client: TestClient):
+    # Create two triggers
+    _ = trigger_faker.create_fake(db_sync, {
+        "event": "page_opened"
+    })
+    _ = trigger_faker.create_fake(db_sync, {
+        "event": "button_clicked"
+    })
+    
+    response = client.get("/api/v1/triggers?event=page_opened")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["event"] == "page_opened"
+
 def test_list_triggers_no_key(client_no_key: TestClient):
     response = client_no_key.get("/api/v1/triggers")
     assert response.status_code == 403
@@ -136,4 +151,49 @@ def test_run_trigger_success(db_sync: Session, client: TestClient, test_api_url:
 
     assert response.status_code == 200
     data = response.json()
-    assert data["status"] == "ok"
+    assert data["status"] == "success"
+
+def test_trigger_event_success(db_sync: Session, client: TestClient, test_api_url: str):
+    webhook = webhook_faker.create_fake(db_sync, {
+        "url": f"{test_api_url}/test_webhook",
+    })
+
+    _ = trigger_faker.create_fake(db_sync, {
+        "webhook_id": webhook.id,
+        "event": "page_opened"
+    })
+
+    payload = {"url": "https://example.com"}
+
+    response = client.post(f"/api/v1/triggers/event", json={
+        "event": "page_opened",
+        "context": payload
+    })
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+
+def test_trigger_event_show_console_action(db_sync: Session, client: TestClient, test_api_url: str):
+    webhook = webhook_faker.create_fake(db_sync, {
+        "url": f"{test_api_url}/test_show_console_action",
+    })
+
+    _ = trigger_faker.create_fake(db_sync, {
+        "webhook_id": webhook.id,
+        "event": "page_opened"
+    })
+
+    payload = {"url": "https://example.com"}
+
+    response = client.post(f"/api/v1/triggers/event", json={
+        "event": "page_opened",
+        "context": payload
+    })
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+
+    assert data[0]["actions"][0]["type"] == "show_console"
+    assert data[0]["actions"][0]["params"]["message"] == "Test Works"
