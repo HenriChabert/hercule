@@ -1,12 +1,13 @@
+from uuid import uuid4
+
 import pytest
 from fastapi.testclient import TestClient
-from uuid import uuid4
 from sqlalchemy.orm.session import Session
+
+from src.app.models import Trigger, Webhook
 from src.app.models.trigger import Trigger
 from tests.helpers.fakers.trigger import TriggerFaker
 from tests.helpers.fakers.webhook import WebhookFaker
-
-from src.app.models import Webhook, Trigger
 
 trigger_faker = TriggerFaker()
 webhook_faker = WebhookFaker()
@@ -143,10 +144,13 @@ def test_run_trigger_success(db_sync: Session, client: TestClient, test_api_url:
         "webhook_id": webhook.id,
     })
 
-    payload = {"test": "payload"}
+    context = {
+        "url": "https://example.com"
+    }
 
     response = client.post(f"/api/v1/trigger/{trigger.id}/run", json={
-        "payload": payload
+        "event": trigger.event,
+        "context": context
     })
 
     assert response.status_code == 200

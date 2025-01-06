@@ -14,7 +14,7 @@ class Trigger(Base, ModelMixin, IDMixin, TimestampMixin, kw_only=True):
     __tablename__ = "triggers"
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    webhook_id: Mapped[str] = mapped_column(ForeignKey("webhooks.id"))
+    webhook_id: Mapped[str | None] = mapped_column(ForeignKey("webhooks.id"), nullable=True)
     source: Mapped[TriggerSource] = mapped_column(String(255), nullable=False)
     event: Mapped[EventType] = mapped_column(String(255), nullable=False)
     url_regex: Mapped[str] = mapped_column(String(255), nullable=True, default=None)

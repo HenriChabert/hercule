@@ -5,7 +5,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.config import Config
 
 current_file_dir = os.path.dirname(os.path.realpath(__file__))
-project_root_dir = os.path.dirname(os.path.dirname(current_file_dir))
+project_src_dir = os.path.dirname(os.path.dirname(current_file_dir))
+project_root_dir = os.path.dirname(project_src_dir)
 
 secrets_dir = os.path.join(project_root_dir, "secrets")
 

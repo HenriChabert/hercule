@@ -1,11 +1,10 @@
-from typing import Any
-from functools import wraps
 import datetime
+from functools import wraps
+from typing import Any
 
 from pydantic import BaseModel, Field
 
-from ..core.schemas import TimestampSchema, IDSchema
-from ..core.sentinel import NOT_PROVIDED, NotProvidedType
+from ..core.schemas import IDSchema, TimestampSchema
 
 
 @wraps(Field)
@@ -47,5 +46,5 @@ class WebhookCreate(WebhookBase):
     pass
 
 class WebhookUpdate(BaseModel):
-    name: str | NotProvidedType = name_field_factory(default=NOT_PROVIDED)
-    url: str | NotProvidedType = url_field_factory(default=NOT_PROVIDED)
+    name: str | None = name_field_factory(default=None)
+    url: str | None = url_field_factory(default=None)

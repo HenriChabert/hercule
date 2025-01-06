@@ -23,7 +23,7 @@ class WebhookCRUD(BaseCRUD[WebhookSchema, WebhookModel]):
         }
         return WebhookSchema.model_validate(model_dump)
 
-    async def read(self, id: str, allow_none: bool = True) -> WebhookSchema | None:
+    async def _read_orm(self, id: str, allow_none: bool = True) -> WebhookModel | None:
         query = select(WebhookModel).where(WebhookModel.id == id)
 
         result = await self.db.execute(query)
@@ -32,7 +32,7 @@ class WebhookCRUD(BaseCRUD[WebhookSchema, WebhookModel]):
         if not webhook and not allow_none:
             raise HTTPException(status_code=404, detail="Webhook not found")
 
-        return self.model_to_schema(webhook) if webhook else None
+        return webhook
 
     async def create(self, data: WebhookCreate) -> WebhookSchema:
         webhook = WebhookModel(**data.model_dump())
@@ -55,7 +55,7 @@ class WebhookCRUD(BaseCRUD[WebhookSchema, WebhookModel]):
         return webhooks_pydantic
 
     async def update(self, id: str, data: WebhookUpdate) -> WebhookSchema:
-        webhook = await self.check_exists(id)
+        webhook = await self._read_orm_safe(id)
 
         new_webhook = self.update_object(webhook, data)
 
@@ -64,7 +64,7 @@ class WebhookCRUD(BaseCRUD[WebhookSchema, WebhookModel]):
         return self.model_to_schema(new_webhook)
 
     async def delete(self, id: str):
-        webhook = await self.check_exists(id)
+        webhook = await self._read_orm_safe(id)
 
         await self.db.delete(webhook)
         await self.db.commit()

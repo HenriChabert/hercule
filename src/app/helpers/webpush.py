@@ -1,7 +1,6 @@
 from typing import Any, Mapping, cast
 
 import aiohttp
-import requests
 from webpush import WebPush, WebPushSubscription  # type: ignore
 
 from src.app.core.config import Settings
@@ -10,6 +9,9 @@ from src.app.core.logger import logging
 logger = logging.getLogger(__name__)
 
 settings = Settings()
+
+print(settings.PUBLIC_KEY_PATH)
+print(settings.PRIVATE_KEY_PATH)
 
 wp = WebPush(
   public_key=settings.PUBLIC_KEY_PATH,

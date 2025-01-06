@@ -25,7 +25,7 @@ class TriggerCRUD(BaseCRUD[TriggerSchema, TriggerModel]):
         }
         return TriggerSchema.model_validate(model_dump)
 
-    async def read(self, id: str, allow_none: bool = True) -> TriggerSchema | None:
+    async def _read_orm(self, id: str, allow_none: bool = True) -> TriggerModel | None:
         query = select(TriggerModel).where(TriggerModel.id == id)
 
         result = await self.db.execute(query)
@@ -34,7 +34,7 @@ class TriggerCRUD(BaseCRUD[TriggerSchema, TriggerModel]):
         if not trigger and not allow_none:
             raise HTTPException(status_code=404, detail="Trigger not found")
 
-        return self.model_to_schema(trigger) if trigger else None
+        return trigger
 
     async def create(self, data: TriggerCreate) -> TriggerSchema:
         trigger = TriggerModel(**data.model_dump())
@@ -55,7 +55,7 @@ class TriggerCRUD(BaseCRUD[TriggerSchema, TriggerModel]):
         return [self.model_to_schema(trigger) for trigger in result.scalars().all()]
 
     async def update(self, id: str, data: TriggerUpdate) -> TriggerSchema:
-        trigger = await self.check_exists(id)
+        trigger = await self._read_orm_safe(id)
 
         new_trigger = self.update_object(trigger, data)
 
@@ -64,6 +64,6 @@ class TriggerCRUD(BaseCRUD[TriggerSchema, TriggerModel]):
         return self.model_to_schema(new_trigger)
 
     async def delete(self, id: str):
-        trigger = await self.check_exists(id)
+        trigger = await self._read_orm_safe(id)
         await self.db.delete(trigger)
         await self.db.commit()

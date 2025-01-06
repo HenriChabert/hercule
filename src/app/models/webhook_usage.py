@@ -18,5 +18,5 @@ class WebhookUsage(Base, ModelMixin, IDMixin, TimestampMixin, kw_only=True):
     status: Mapped[WebhookUsageStatus] = mapped_column(String(255), nullable=False)
 
     webpush_subscription_data: Mapped[dict[str, Any]] = mapped_column(
-        JSON, nullable=True, default={}
+        JSON, nullable=True, default_factory=dict
     )

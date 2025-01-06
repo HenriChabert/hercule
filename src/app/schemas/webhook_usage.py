@@ -7,7 +7,6 @@ from pydantic import BaseModel, Field
 from src.app.types.actions import Action
 
 from ..core.schemas import IDSchema, TimestampSchema
-from ..core.sentinel import NOT_PROVIDED, NotProvidedType
 from ..models.webhook_usage import WebhookUsageStatus
 from ..types.events import EventType
 
@@ -39,13 +38,12 @@ def status_field_factory(**kwargs: Any):
 def webpush_subscription_data_field_factory(**kwargs: Any):
     return Field(
         description="The webpush subscription data",
-        examples=[{
-            "endpoint": "https://example.com/webpush",
-            "keys": {
-                "p256dh": "BGoQYQ==",
-                "auth": "1234567890"
+        examples=[
+            {
+                "endpoint": "https://example.com/webpush",
+                "keys": {"p256dh": "BGoQYQ==", "auth": "1234567890"},
             }
-        }],
+        ],
         **kwargs
     )
 
@@ -74,9 +72,8 @@ class WebhookUsageCreate(WebhookUsageBase):
 
 
 class WebhookUsageUpdate(BaseModel):
-    status: WebhookUsageStatus | NotProvidedType = status_field_factory(
-        default=NOT_PROVIDED
-    )
+    status: WebhookUsageStatus | None = status_field_factory(default=None)
+
 
 class WebhookUsageCallbackPayload(BaseModel):
     actions: list[Action] = Field(description="The actions to be performed")

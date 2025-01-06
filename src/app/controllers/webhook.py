@@ -32,22 +32,15 @@ class WebhookController(BaseController[WebhookSchema, WebhookModel]):
 
     async def create(self, webhook: WebhookCreate) -> WebhookSchema:
         return await self.crud.create(webhook)
-
-    @overload
+    
     async def read(
-        self, webhook_id: str, raise_exception: Literal[False] = False
-    ) -> WebhookSchema | None: ...
-
-    @overload
-    async def read(
-        self, webhook_id: str, raise_exception: Literal[True]
-    ) -> WebhookSchema: ...
-
-    async def read(
-        self, webhook_id: str, raise_exception: bool = False
+        self, webhook_id: str, allow_none: bool = False
     ) -> WebhookSchema | None:
-        webhook = await self.crud.read(webhook_id, allow_none=(not raise_exception))
+        webhook = await self.crud.read(webhook_id, allow_none=allow_none)
         return webhook
+    
+    async def read_safe(self, webhook_id: str) -> WebhookSchema:
+        return await self.crud.read_safe(webhook_id)
 
     async def list(self) -> list[WebhookSchema]:
         return await self.crud.list()
@@ -70,11 +63,12 @@ class WebhookController(BaseController[WebhookSchema, WebhookModel]):
         payload: Mapping[str, Any],
         web_push_subscription: dict[str, Any] | None = None,
     ) -> WebhookCallResult:
-        webhook = await self.read(webhook_id, raise_exception=True)
+        webhook = await self.read_safe(webhook_id)
 
         webhook_usage = await self.webhook_usage_ctrl.create(
             WebhookUsageCreate(
                 webhook_id=webhook_id,
+                event=event,
                 webpush_subscription_data=web_push_subscription,
             )
         )

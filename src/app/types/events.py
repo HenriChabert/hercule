@@ -1,12 +1,12 @@
-from typing import Literal, TypedDict, TypeAlias, NotRequired
+from typing import Literal, NotRequired, TypeAlias, TypedDict
 
 EventType: TypeAlias = Literal['page_opened', 'button_clicked']
 
 # Page Opened
 
 class PageOpenedEventContext(TypedDict):
-  html_content: str
-  url: str
+  html_content: NotRequired[str]
+  url: NotRequired[str]
 
 class PageOpenedEvent(TypedDict):
   type: Literal['page_opened']
@@ -16,8 +16,8 @@ class PageOpenedEvent(TypedDict):
 
 class ButtonClickedEventContext(TypedDict):
   trigger_id: str
-  html_content: str
-  url: str
+  html_content: NotRequired[str]
+  url: NotRequired[str]
 
 class ButtonClickedEvent(TypedDict):
   type: Literal['button_clicked']

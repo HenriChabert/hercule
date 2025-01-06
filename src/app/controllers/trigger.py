@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app.controllers.base import BaseController
 from src.app.controllers.webhook import WebhookCallResult, WebhookController
-from src.app.core.sentinel import NOT_PROVIDED
 from src.app.crud.trigger import TriggerCRUD
 from src.app.models.trigger import Trigger as TriggerModel
 from src.app.schemas.trigger import Trigger as TriggerSchema
@@ -22,14 +21,15 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
     async def create(self, trigger: TriggerCreateClient) -> TriggerSchema:
         webhook_ctrl = WebhookController(self.db)
 
-        if trigger.webhook_url != NOT_PROVIDED:
-            webhook = await webhook_ctrl.create(
-                WebhookCreate(url=cast(str, trigger.webhook_url))
-            )
+        if trigger.webhook_url is not None:
+            webhook = await webhook_ctrl.create(WebhookCreate(url=trigger.webhook_url))
             trigger.webhook_id = webhook.id
 
+        if trigger.webhook_id is None:
+            raise HTTPException(status_code=422, detail="Webhook should exist")
+
         try:
-            _ = await webhook_ctrl.read(trigger.webhook_id, raise_exception=True)
+            _ = await webhook_ctrl.read(trigger.webhook_id, allow_none=False)
         except HTTPException as e:
             raise HTTPException(status_code=422, detail="Webhook should exist") from e
 
@@ -37,20 +37,13 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
 
         return await self.crud.create(trigger_dto)
 
-    @overload
     async def read(
-        self, trigger_id: str, raise_exception: Literal[False] = False
-    ) -> TriggerSchema | None: ...
-
-    @overload
-    async def read(
-        self, trigger_id: str, raise_exception: Literal[True]
-    ) -> TriggerSchema: ...
-
-    async def read(
-        self, trigger_id: str, raise_exception: bool = False
+        self, trigger_id: str, allow_none: bool = False
     ) -> TriggerSchema | None:
-        return await self.crud.read(trigger_id, raise_exception)
+        return await self.crud.read(trigger_id, allow_none)
+    
+    async def read_safe(self, trigger_id: str) -> TriggerSchema:
+        return await self.crud.read_safe(trigger_id)
 
     async def list(self, event: EventType | None = None) -> list[TriggerSchema]:
         return await self.crud.list(event=event)
@@ -68,8 +61,12 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
         payload: Mapping[str, Any],
         web_push_subscription: dict[str, Any] | None = None,
     ) -> WebhookCallResult:
-        trigger = await self.read(trigger_id, raise_exception=True)
+        trigger = await self.read_safe(trigger_id)
         webhook_ctrl = WebhookController(self.db)
+
+        if trigger.webhook_id is None:
+            raise HTTPException(status_code=422, detail="Trigger should have a webhook")
+
         return await webhook_ctrl.call(
             trigger.webhook_id, event, payload, web_push_subscription
         )
@@ -78,11 +75,11 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
         self,
         event: EventType,
         context: EventContext,
-        web_push_subscription: dict[str, Any],
+        web_push_subscription: dict[str, Any] | None = None,
     ) -> List[WebhookCallResult]:
         triggers_results: list[WebhookCallResult] = []
         if "trigger_id" in context:
-            triggers = [await self.read(context["trigger_id"], raise_exception=True)]
+            triggers = [await self.read_safe(context["trigger_id"])]
         else:
             triggers = await self.list(event=event)
 

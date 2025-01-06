@@ -25,7 +25,7 @@ async def get_trigger(
     trigger_id: str, db: Annotated[AsyncSession, Depends(async_get_db)]
 ):
     trigger_ctrl = TriggerController(db)
-    return await trigger_ctrl.read(trigger_id, raise_exception=True)
+    return await trigger_ctrl.read(trigger_id, allow_none=False)
 
 
 @router.get("/triggers")
@@ -69,8 +69,8 @@ async def run_trigger(
 async def trigger_event(
     event: Annotated[EventType, Body()],
     context: Annotated[EventContext, Body()],
-    web_push_subscription: Annotated[dict[str, Any], Body()],
     db: Annotated[AsyncSession, Depends(async_get_db)],
+    web_push_subscription: Annotated[dict[str, Any], Body()] | None = None,
 ):
     trigger_ctrl = TriggerController(db)
     events_results = await trigger_ctrl.trigger_event(

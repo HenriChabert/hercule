@@ -28,9 +28,9 @@ class WebhookUsageCRUD(BaseCRUD[WebhookUsageSchema, WebhookUsageModel]):
         await self.db.refresh(webhook_usage)
         return self.model_to_schema(webhook_usage)
 
-    async def read(
+    async def _read_orm(
         self, id: str, allow_none: bool = False
-    ) -> WebhookUsageSchema | None:
+    ) -> WebhookUsageModel | None:
         query = select(WebhookUsageModel).where(WebhookUsageModel.id == id)
 
         result = await self.db.execute(query)
@@ -39,7 +39,7 @@ class WebhookUsageCRUD(BaseCRUD[WebhookUsageSchema, WebhookUsageModel]):
         if not webhook_usage and not allow_none:
             raise HTTPException(status_code=404, detail="Webhook usage not found")
 
-        return self.model_to_schema(webhook_usage) if webhook_usage else None
+        return webhook_usage
 
     async def list(
         self, webhook_id: str | None = None, **kwargs: Any
@@ -56,7 +56,7 @@ class WebhookUsageCRUD(BaseCRUD[WebhookUsageSchema, WebhookUsageModel]):
         ]
 
     async def update(self, id: str, data: WebhookUsageUpdate) -> WebhookUsageSchema:
-        webhook_usage = await self.check_exists(id)
+        webhook_usage = await self._read_orm_safe(id)
 
         new_webhook_usage = self.update_object(webhook_usage, data)
 
@@ -65,14 +65,14 @@ class WebhookUsageCRUD(BaseCRUD[WebhookUsageSchema, WebhookUsageModel]):
         return self.model_to_schema(new_webhook_usage)
 
     async def delete(self, id: str):
-        webhook_usage = await self.check_exists(id)
+        webhook_usage = await self._read_orm_safe(id)
         await self.db.delete(webhook_usage)
         await self.db.commit()
 
     async def update_status(
         self, id: str, status: WebhookUsageStatus
     ) -> WebhookUsageSchema:
-        await self.check_exists(id)
+        await self._read_orm_safe(id)
 
         query = (
             update(WebhookUsageModel)
