@@ -48,13 +48,12 @@ class WebhookUsageController(BaseController[WebhookUsageSchema, WebhookUsageMode
         webhook_usage = await self.read_safe(webhook_usage_id)
 
         webpush_sub_data = webhook_usage.webpush_subscription_data
-        webpush_sub_data_parsed = None
+
         if not webpush_sub_data:
             raise HTTPException(
                 status_code=400, detail="Invalid webpush subscription data"
             )
 
-        if webpush_sub_data_parsed:
-            await send_webpush(webpush_sub_data_parsed, payload.model_dump())
-
+        await send_webpush(webpush_sub_data, payload.model_dump())
+        
         return True

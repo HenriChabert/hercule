@@ -73,14 +73,12 @@ class WebhookController(BaseController[WebhookSchema, WebhookModel]):
             )
         )
 
-        webhook_usage_callback_url = self.webhook_usage_ctrl.get_callback_url(
-            webhook_usage.id
-        )
+        webhook_usage_callback_id = webhook_usage.id
 
         body = {
             "event": event,
             "payload": payload,
-            "callback_url": webhook_usage_callback_url,
+            "webhook_usage_id": webhook_usage_callback_id,
         }
 
         async with httpx.AsyncClient() as client:

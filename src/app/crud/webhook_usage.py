@@ -16,6 +16,7 @@ class WebhookUsageCRUD(BaseCRUD[WebhookUsageSchema, WebhookUsageModel]):
         model_dump = {
             "id": model.id,
             "webhook_id": model.webhook_id,
+            "webpush_subscription_data": model.webpush_subscription_data,
             "event": model.event,
             "status": model.status,
         }

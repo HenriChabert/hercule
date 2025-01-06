@@ -69,7 +69,7 @@ class WebPushSettings(BaseSettings):
   PRIVATE_KEY_PATH: str = config("PRIVATE_KEY_PATH", default=os.path.join(secrets_dir, "private_key.pem"))
 
 class ApiSettings(BaseSettings):
-  API_URL: str = config("API_URL", default="http://localhost:8000")
+  API_URL: str = config("API_URL", default="http://localhost:8000/api/v1")
 
 class Settings(
   ConfigSettings,

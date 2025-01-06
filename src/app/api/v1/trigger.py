@@ -1,6 +1,7 @@
 from typing import Annotated, Any, Mapping
 
 from fastapi import APIRouter, Body, Depends, status
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app.api.dependencies import check_secret_key_header
@@ -53,27 +54,34 @@ async def delete_trigger(
     trigger_ctrl = TriggerController(db)
     return await trigger_ctrl.delete(trigger_id)
 
+class TriggerRunPayload(BaseModel):
+    event: EventType
+    context: EventContext
+    web_push_subscription: dict[str, Any] | None
 
 @router.post("/trigger/{trigger_id}/run")
 async def run_trigger(
     trigger_id: str,
-    event: Annotated[EventType, Body()],
-    context: Annotated[EventContext, Body()],
+    payload: TriggerRunPayload,
     db: Annotated[AsyncSession, Depends(async_get_db)],
 ):
     trigger_ctrl = TriggerController(db)
-    return await trigger_ctrl.trigger(trigger_id, event, context)
+    return await trigger_ctrl.trigger(trigger_id, payload.event, payload.context, payload.web_push_subscription)
+
+
+class TriggerEventPayload(BaseModel):
+    event: EventType
+    context: EventContext
+    web_push_subscription: dict[str, Any] | None
 
 
 @router.post("/triggers/event")
 async def trigger_event(
-    event: Annotated[EventType, Body()],
-    context: Annotated[EventContext, Body()],
+    payload: TriggerEventPayload,
     db: Annotated[AsyncSession, Depends(async_get_db)],
-    web_push_subscription: Annotated[dict[str, Any], Body()] | None = None,
 ):
     trigger_ctrl = TriggerController(db)
     events_results = await trigger_ctrl.trigger_event(
-        event=event, context=context, web_push_subscription=web_push_subscription
+        event=payload.event, context=payload.context, web_push_subscription=payload.web_push_subscription
     )
     return events_results
