@@ -1,11 +1,15 @@
-from uuid import uuid4
-from typing import  Any
 from functools import wraps
+from typing import Any
+from uuid import uuid4
+
 from pydantic import BaseModel, Field
-from ..core.schemas import TimestampSchema, IDSchema
-from ..core.sentinel import NOT_PROVIDED
+
+from ..core.schemas import IDSchema, TimestampSchema
+from ..core.sentinel import NOT_PROVIDED, NotProvidedType
 from ..models.trigger import TriggerSource
 from ..types.events import EventType
+
+
 @wraps(Field)
 def url_regex_field_factory(**kwargs: Any):
     return Field(description="The URL regex of the trigger", examples=[".*", "https://example.com", "https://example.com/.*"], **kwargs)
@@ -44,12 +48,12 @@ class TriggerRead(Trigger):
 
 class TriggerCreateClient(TriggerBase):
     webhook_id: str = webhook_id_field_factory(default=NOT_PROVIDED)
-    webhook_url: str = Field(description="The URL of the webhook", default=NOT_PROVIDED)
+    webhook_url: str | NotProvidedType = Field(description="The URL of the webhook", default=NOT_PROVIDED)
 
 class TriggerCreate(TriggerBase):
     webhook_id: str = webhook_id_field_factory(default=NOT_PROVIDED)
 
 class TriggerUpdate(BaseModel):
-    url_regex: str = url_regex_field_factory(default=NOT_PROVIDED)
-    name: str = name_field_factory(default=NOT_PROVIDED)
-    event: str = event_field_factory(default=NOT_PROVIDED)
+    url_regex: str | NotProvidedType = url_regex_field_factory(default=NOT_PROVIDED)
+    name: str | NotProvidedType = name_field_factory(default=NOT_PROVIDED)
+    event: str | NotProvidedType = event_field_factory(default=NOT_PROVIDED)

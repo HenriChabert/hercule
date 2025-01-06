@@ -5,8 +5,7 @@ import datetime
 from pydantic import BaseModel, Field
 
 from ..core.schemas import TimestampSchema, IDSchema
-from ..core.sentinel import NOT_PROVIDED
-
+from ..core.sentinel import NOT_PROVIDED, NotProvidedType
 
 
 @wraps(Field)
@@ -48,5 +47,5 @@ class WebhookCreate(WebhookBase):
     pass
 
 class WebhookUpdate(BaseModel):
-    name: str = name_field_factory(default=NOT_PROVIDED)
-    url: str = url_field_factory(default=NOT_PROVIDED)
+    name: str | NotProvidedType = name_field_factory(default=NOT_PROVIDED)
+    url: str | NotProvidedType = url_field_factory(default=NOT_PROVIDED)

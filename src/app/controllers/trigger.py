@@ -1,16 +1,19 @@
-from fastapi import HTTPException
-from typing import Mapping, Any, overload, Literal, List, TypedDict
-from src.app.controllers.base import BaseController
-from src.app.controllers.webhook import WebhookController, WebhookCallResult
-from src.app.core.sentinel import NOT_PROVIDED
-from src.app.schemas.trigger import TriggerCreateClient, TriggerCreate, Trigger as TriggerSchema, TriggerUpdate
-from src.app.schemas.webhook import WebhookCreate
-from src.app.models.trigger import Trigger as TriggerModel
-from src.app.crud.trigger import TriggerCRUD
-from src.app.types.actions import Action
-from src.app.types.events import EventType, EventContext
+from typing import Any, List, Literal, Mapping, TypedDict, cast, overload
 
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.app.controllers.base import BaseController
+from src.app.controllers.webhook import WebhookCallResult, WebhookController
+from src.app.core.sentinel import NOT_PROVIDED
+from src.app.crud.trigger import TriggerCRUD
+from src.app.models.trigger import Trigger as TriggerModel
+from src.app.schemas.trigger import Trigger as TriggerSchema
+from src.app.schemas.trigger import TriggerCreate, TriggerCreateClient, TriggerUpdate
+from src.app.schemas.webhook import WebhookCreate
+from src.app.types.actions import Action
+from src.app.types.events import EventContext, EventType
+
 
 class TriggerController(BaseController[TriggerSchema, TriggerModel]):
     def __init__(self, db: AsyncSession):
@@ -22,7 +25,7 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
         
         if trigger.webhook_url != NOT_PROVIDED:
             webhook = await webhook_ctrl.create(
-                WebhookCreate(url=trigger.webhook_url)
+                WebhookCreate(url=cast(str, trigger.webhook_url))
             )
             trigger.webhook_id = webhook.id
 

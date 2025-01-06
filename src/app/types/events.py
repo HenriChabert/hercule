@@ -5,6 +5,7 @@ EventType: TypeAlias = Literal['page_opened', 'button_clicked']
 # Page Opened
 
 class PageOpenedEventContext(TypedDict):
+  html_content: str
   url: str
 
 class PageOpenedEvent(TypedDict):
@@ -15,6 +16,7 @@ class PageOpenedEvent(TypedDict):
 
 class ButtonClickedEventContext(TypedDict):
   trigger_id: str
+  html_content: str
   url: str
 
 class ButtonClickedEvent(TypedDict):

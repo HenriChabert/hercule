@@ -1,22 +1,17 @@
+from typing import Any, cast
+
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.app.core.sentinel import NOT_PROVIDED
-from src.app.schemas.webhook import WebhookCreate, WebhookBase
-
 from ..models.trigger import Trigger as TriggerModel
-from ..schemas.trigger import Trigger as TriggerSchema, TriggerCreate, TriggerUpdate, TriggerCreateClient
+from ..schemas.trigger import Trigger as TriggerSchema
+from ..schemas.trigger import TriggerCreate, TriggerUpdate
 from ..types.events import EventType
 from .base import BaseCRUD
-from .webhook import WebhookCRUD
 
-from typing import Any
 
 class TriggerCRUD(BaseCRUD[TriggerSchema, TriggerModel]):
-    def __init__(self, db: AsyncSession):
-        self.db = db
-
     def model_to_schema(self, model: TriggerModel) -> TriggerSchema:
         model_dump = {
             "id": model.id,
@@ -30,6 +25,17 @@ class TriggerCRUD(BaseCRUD[TriggerSchema, TriggerModel]):
         }
         return TriggerSchema.model_validate(model_dump)
 
+    async def read(self, id: str, allow_none: bool = True) -> TriggerSchema | None:
+        query = select(TriggerModel).where(TriggerModel.id == id)
+
+        result = await self.db.execute(query)
+
+        trigger = result.scalar_one_or_none()
+        if not trigger and not allow_none:
+            raise HTTPException(status_code=404, detail="Trigger not found")
+
+        return self.model_to_schema(trigger) if trigger else None
+
     async def create(self, data: TriggerCreate) -> TriggerSchema:
         trigger = TriggerModel(**data.model_dump())
         self.db.add(trigger)
@@ -37,40 +43,27 @@ class TriggerCRUD(BaseCRUD[TriggerSchema, TriggerModel]):
         await self.db.refresh(trigger)
         return self.model_to_schema(trigger)
 
-    async def read(self, id: str, raise_exception: bool = False) -> TriggerSchema | None:
-        trigger = await self.db.get(TriggerModel, id)
-        if not trigger and raise_exception:
-            raise HTTPException(status_code=404, detail="Trigger not found")
-        return self.model_to_schema(trigger) if trigger else None
-
-    async def list(self, event: EventType | None = None, **kwargs: Any) -> list[TriggerSchema]:
+    async def list(
+        self, event: EventType | None = None, **kwargs: Any
+    ) -> list[TriggerSchema]:
         query = select(TriggerModel)
         if event:
             query = query.where(TriggerModel.event == event)
 
-        triggers = await self.db.execute(query)
-        
-        return [self.model_to_schema(trigger[0]) for trigger in triggers]
+        result = await self.db.execute(query)
 
+        return [self.model_to_schema(trigger) for trigger in result.scalars().all()]
 
     async def update(self, id: str, data: TriggerUpdate) -> TriggerSchema:
-        trigger = await self.db.get(TriggerModel, id)
-        if not trigger:
-            raise HTTPException(status_code=404, detail="Trigger not found")
-        
-        provided_params = self.only_provided_params(data)
-        for key, value in provided_params.items():
-            if hasattr(trigger, key):
-                setattr(trigger, key, value)
+        trigger = await self.check_exists(id)
+
+        new_trigger = self.update_object(trigger, data)
 
         await self.db.commit()
-        await self.db.refresh(trigger)
-        return self.model_to_schema(trigger)
-
+        await self.db.refresh(new_trigger)
+        return self.model_to_schema(new_trigger)
 
     async def delete(self, id: str):
-        trigger = await self.db.get(TriggerModel, id)
-        if not trigger:
-            raise HTTPException(status_code=404, detail="Trigger not found")
+        trigger = await self.check_exists(id)
         await self.db.delete(trigger)
         await self.db.commit()
