@@ -1,12 +1,15 @@
-from pydantic import BaseModel, Field
-from uuid import uuid4
 from functools import wraps
 from typing import Any
+from uuid import uuid4
 
-from ..core.schemas import TimestampSchema, IDSchema
+from pydantic import BaseModel, Field
+
+from src.app.types.actions import Action
+
+from ..core.schemas import IDSchema, TimestampSchema
 from ..core.sentinel import NOT_PROVIDED, NotProvidedType
-from ..types.events import EventType
 from ..models.webhook_usage import WebhookUsageStatus
+from ..types.events import EventType
 
 
 @wraps(Field)
@@ -36,9 +39,13 @@ def status_field_factory(**kwargs: Any):
 def webpush_subscription_data_field_factory(**kwargs: Any):
     return Field(
         description="The webpush subscription data",
-        examples=[
-            "{'endpoint': 'https://example.com/webpush', 'keys': {'p256dh': 'BGoQYQ==', 'auth': '1234567890'}}"
-        ],
+        examples=[{
+            "endpoint": "https://example.com/webpush",
+            "keys": {
+                "p256dh": "BGoQYQ==",
+                "auth": "1234567890"
+            }
+        }],
         **kwargs
     )
 
@@ -46,13 +53,11 @@ def webpush_subscription_data_field_factory(**kwargs: Any):
 class WebhookUsageBase(BaseModel):
     model_config = {"from_attributes": False}
 
-    webhook_id: str | NotProvidedType = webhook_id_field_factory()
-    event: EventType | NotProvidedType = event_field_factory()
-    status: WebhookUsageStatus | NotProvidedType = status_field_factory(
-        default="pending"
-    )
-    webpush_subscription_data: str | NotProvidedType = (
-        webpush_subscription_data_field_factory(default=NOT_PROVIDED)
+    webhook_id: str = webhook_id_field_factory()
+    event: EventType = event_field_factory()
+    status: WebhookUsageStatus = status_field_factory(default="pending")
+    webpush_subscription_data: dict[str, Any] | None = (
+        webpush_subscription_data_field_factory(default=None)
     )
 
 
@@ -72,3 +77,6 @@ class WebhookUsageUpdate(BaseModel):
     status: WebhookUsageStatus | NotProvidedType = status_field_factory(
         default=NOT_PROVIDED
     )
+
+class WebhookUsageCallbackPayload(BaseModel):
+    actions: list[Action] = Field(description="The actions to be performed")

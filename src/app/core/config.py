@@ -67,6 +67,9 @@ class WebPushSettings(BaseSettings):
   PUBLIC_KEY_PATH: str = config("PUBLIC_KEY_PATH", default=os.path.join(secrets_dir, "public_key.pem"))
   PRIVATE_KEY_PATH: str = config("PRIVATE_KEY_PATH", default=os.path.join(secrets_dir, "private_key.pem"))
 
+class ApiSettings(BaseSettings):
+  API_URL: str = config("API_URL", default="http://localhost:8000")
+
 class Settings(
   ConfigSettings,
   DatabaseSettings,
@@ -76,6 +79,7 @@ class Settings(
   SecuritySettings,
   EnvironmentSettings,
   WebPushSettings,
+  ApiSettings,
   BaseSettings
 ):
   model_config = SettingsConfigDict(
