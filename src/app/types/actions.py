@@ -1,4 +1,4 @@
-from typing import Literal, TypedDict, TypeAlias
+from typing import Literal, TypeAlias, TypedDict
 
 ActionType: TypeAlias = Literal['show_alert']
 
@@ -20,4 +20,13 @@ class ShowConsoleAction(TypedDict):
   type: Literal['show_console']
   params: ShowConsoleActionParams
 
-Action: TypeAlias = ShowAlertAction | ShowConsoleAction
+# Inject Script
+
+class InjectScriptActionParams(TypedDict):
+  script: str
+
+class InjectScriptAction(TypedDict):
+  type: Literal['inject_script']
+  params: InjectScriptActionParams
+
+Action: TypeAlias = ShowAlertAction | ShowConsoleAction | InjectScriptAction
