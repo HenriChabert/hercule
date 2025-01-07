@@ -33,4 +33,4 @@ jobs:
 
       - name: Run tests
         run: |
-          poetry run pytest
+          poetry run pytest -m "not local_only"

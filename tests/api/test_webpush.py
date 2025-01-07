@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 from playwright.sync_api import Page
 from webpush import WebPushSubscription  # type: ignore
@@ -12,6 +13,7 @@ def test_get_public_key(client: TestClient):
     assert response.json() == {"public_key": settings.APP_SERVER_KEY}
 
 
+@pytest.mark.local_only
 def test_web_push_notification(
     push_test_page: Page, push_subscription: WebPushSubscription, client: TestClient
 ):
