@@ -19,12 +19,9 @@ def test_web_push_notification(
 
     push_sub = push_subscription.model_dump()
     push_sub["endpoint"] = str(push_sub["endpoint"])
-    # Use the subscription in your tests
 
     console_logs: list[str] = []
     push_test_page.on("console", lambda msg: console_logs.append(msg.text))
-
-    push_test_page.wait_for_timeout(500)
 
     response = client.post(
         "/api/v1/webpush/send",

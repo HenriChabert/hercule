@@ -1,13 +1,14 @@
 import os
 
 from dotenv import load_dotenv
+from fastapi import FastAPI
 from playwright.sync_api import BrowserContext
 from webpush import WebPushSubscription  # type: ignore
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(f"{current_dir}/../.env.test", override=True)
 
-from typing import Any, Generator
+from typing import Any, Callable, Generator
 
 import pytest
 import pytest_asyncio
@@ -24,8 +25,9 @@ from src.app.core.db.database import (
     sync_get_db,
 )
 
-from .helpers.test_api.main import (
-    create_test_client,
+from .helpers.web_services.test_api.main import create_test_api
+from .helpers.web_services.test_web_server.main import create_static_web_server
+from .helpers.web_services.utils import (
     find_free_port,
     run_test_server,
     stop_test_server,
@@ -38,33 +40,30 @@ def reset_db_each_test():
     yield
     clean_db()
 
-
-@pytest.fixture(scope="session")
-def test_api_url():
-    # Define a new FastAPI app specifically for testing
-    app = create_test_client()
-
+def test_server_url_fixture(create_fn: Callable[[], FastAPI]):
     host = "127.0.0.1"
-    # port = find_free_port()
-    port = 62885
+    port = find_free_port()
 
-    # Run the test server
-    server_thread = run_test_server(app, host, port)
+    server_thread = run_test_server(create_fn(), host, port)
 
-    # Yield the base URL for the test server
     base_url = f"http://{host}:{port}"
     yield base_url
 
-    # Stop the server after tests
     stop_test_server(server_thread)
+
+
+@pytest.fixture(scope="session")
+def test_api_url() -> Generator[str, Any, None]:
+    yield from test_server_url_fixture(create_test_api)
+
+@pytest.fixture(scope="session")
+def test_web_server_url() -> Generator[str, Any, None]:
+    yield from test_server_url_fixture(create_static_web_server)
 
 
 @pytest.fixture(scope="session")
 def client() -> Generator[TestClient, Any, None]:
     from src.app.main import app
-    from tests.helpers.test_api.router import router as test_router
-
-    app.include_router(test_router)
 
     with TestClient(app) as _client:
         _client.headers[settings.HERCULE_HEADER_NAME] = os.getenv(
@@ -104,7 +103,6 @@ from playwright.sync_api import Browser, Page, sync_playwright
 
 @pytest.fixture(scope="session")
 def browser_context() -> Generator[BrowserContext, Any, None]:
-
     with sync_playwright() as p:
         # browser = p.chromium.connect_over_cdp(
         #     f"ws://127.0.0.1:9222/devtools/browser/68117ca3-64a8-489e-b12f-86196dc47e7b"
@@ -112,7 +110,7 @@ def browser_context() -> Generator[BrowserContext, Any, None]:
         # context = browser.contexts[0]
         context = p.chromium.launch_persistent_context(
             headless=True,
-            user_data_dir=f"/tmp/tests/playwright3",
+            user_data_dir=f"/tmp/tests/playwright",
             permissions=["notifications"],
             channel="chromium",
             args=[
@@ -125,11 +123,13 @@ def browser_context() -> Generator[BrowserContext, Any, None]:
         context.close()
 
 @pytest.fixture
-def push_test_page(test_api_url: str, browser_context: BrowserContext):
+def push_test_page(test_web_server_url: str, browser_context: BrowserContext):
     page = browser_context.new_page()
     page.on("console", lambda msg: print("Console:", msg.text))
 
-    page.goto(f"{test_api_url}/test-push.html")
+    page.goto(f"{test_web_server_url}/test-push.html")
+
+    page.wait_for_function("window.serviceWorkerActivated", timeout=1000)
 
     yield page
 

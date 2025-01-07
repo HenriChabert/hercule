@@ -1,5 +1,6 @@
 function sendToAllClients(type, event) {
     self.clients.matchAll().then(clients => {
+        console.log({clients});
         clients.forEach(client => {
             client.postMessage({
                 type: type,
@@ -16,6 +17,7 @@ self.addEventListener('push', function(event) {
 });
 
 self.addEventListener('activate', function(event) {
+    event.waitUntil(self.clients.claim());
     console.log("Service worker activated", event);
     sendToAllClients('SERVICE_WORKER_ACTIVATED', event);
 });
