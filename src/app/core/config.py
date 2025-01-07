@@ -4,14 +4,17 @@ from enum import Enum
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.config import Config
 
-
 current_file_dir = os.path.dirname(os.path.realpath(__file__))
+project_src_dir = os.path.dirname(os.path.dirname(current_file_dir))
+project_root_dir = os.path.dirname(project_src_dir)
+
+secrets_dir = os.path.join(project_root_dir, "secrets")
 
 env_filename = ".env"
 if os.environ.get("ENVIRONMENT") == "test":
   env_filename = ".env.test"
 
-env_path = os.path.join(current_file_dir, "..", "..", "..", env_filename)
+env_path = os.path.join(project_root_dir, env_filename)
 config = Config(env_path)
 
 class ConfigSettings(BaseSettings):
@@ -60,6 +63,15 @@ class EnvironmentOption(Enum):
 class EnvironmentSettings(BaseSettings):
   ENVIRONMENT: EnvironmentOption = config("ENVIRONMENT", default=EnvironmentOption.LOCAL)
 
+class WebPushSettings(BaseSettings):
+  APP_SERVER_KEY: str = config("APP_SERVER_KEY", default="")
+  SUBSCRIBER_EMAIL: str = config("SUBSCRIBER_EMAIL", default="chabhenrib@gmail.com")
+  PUBLIC_KEY_PATH: str = config("PUBLIC_KEY_PATH", default=os.path.join(secrets_dir, "public_key.pem"))
+  PRIVATE_KEY_PATH: str = config("PRIVATE_KEY_PATH", default=os.path.join(secrets_dir, "private_key.pem"))
+
+class ApiSettings(BaseSettings):
+  API_URL: str = config("API_URL", default="http://localhost:8000/api/v1")
+
 class Settings(
   ConfigSettings,
   DatabaseSettings,
@@ -68,6 +80,8 @@ class Settings(
   TestSettings,
   SecuritySettings,
   EnvironmentSettings,
+  WebPushSettings,
+  ApiSettings,
   BaseSettings
 ):
   model_config = SettingsConfigDict(

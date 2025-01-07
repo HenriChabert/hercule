@@ -165,3 +165,8 @@ cython_debug/
 .DS_Store
 
 .ruff_cache
+
+# Secrets
+secrets/*
+!secrets/.gitkeep
+

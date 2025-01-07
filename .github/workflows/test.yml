@@ -16,7 +16,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.9" # Specify the Python version you are using
+          python-version: "3.13" # Specify the Python version you are using
 
       - name: Install Poetry
         run: |
@@ -27,6 +27,10 @@ jobs:
         run: |
           poetry install --no-root
 
+      - name: Install Playwright Chromium browser
+        run: |
+          poetry run playwright install chromium
+
       - name: Run tests
         run: |
-          poetry run pytest
+          poetry run pytest -m "not local_only"

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Push Test</title>
+  </head>
+  <body>
+    <h1>Push Test</h1>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.pushReceived = false;
+        window.serviceWorkerInstalled = false;
+        window.serviceWorkerActivated = false;
+
+        console.log("Registering service worker");
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then(function (registration) {
+            console.log("Service Worker registered");
+          });
+
+        navigator.serviceWorker.addEventListener("message", (event) => {
+          if (event.data.type === "PUSH_RECEIVED") {
+            window.pushReceived = true;
+            console.log("Push notification received:", event.data);
+          } else if (event.data.type === "SERVICE_WORKER_ACTIVATED") {
+            window.serviceWorkerActivated = true;
+            console.log("Service worker activated:", event.data);
+          } else if (event.data.type === "SERVICE_WORKER_INSTALLED") {
+            window.serviceWorkerInstalled = true;
+            console.log("Service worker installed:", event.data);
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

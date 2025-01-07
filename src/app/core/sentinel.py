@@ -8,6 +8,10 @@ class Sentinel:
     
     def __str__(self):
         return self.name
+    
+# Type alias for NOT_PROVIDED sentinel
+NotProvidedType = Sentinel
+
 
 # Define a reusable sentinel object
 NOT_PROVIDED = Sentinel("NOT_PROVIDED")
