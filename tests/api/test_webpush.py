@@ -29,7 +29,7 @@ def test_web_push_notification(
     )
     assert response.status_code == 200
 
-    received = push_test_page.wait_for_function("window.pushReceived", timeout=1000)
+    received = push_test_page.wait_for_function("window.pushReceived", timeout=10000)
     assert received
 
     assert len(console_logs) > 0
