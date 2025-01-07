@@ -98,7 +98,11 @@ class WebhookController(BaseController[WebhookSchema, WebhookModel]):
             if response.status_code >= 400:
                 await self.webhook_usage_ctrl.update_status(webhook_usage.id, 'error')
                 raise HTTPException(
-                    status_code=response.status_code, detail=response.text
+                    status_code=400,
+                    detail={
+                        "status": response.status_code,
+                        "message": response.text,
+                    },
                 )
             
             await self.webhook_usage_ctrl.update_status(webhook_usage.id, 'success')

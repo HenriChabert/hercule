@@ -1,8 +1,12 @@
-from fastapi import FastAPI
 import threading
-import uvicorn
 from time import sleep
+
+import uvicorn
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+
 from .router import router
+
 
 def run_test_server(app: FastAPI, host: str, port: int):
     """Runs a FastAPI app on a separate thread."""
@@ -33,6 +37,7 @@ def find_free_port() -> int:
 def create_test_client() -> FastAPI:
     # Define a new FastAPI app specifically for testing
     test_app = FastAPI()
+    test_app.mount("/", StaticFiles(directory="tests/helpers/test_api/static"), name="static")
     test_app.include_router(router)
 
     return test_app

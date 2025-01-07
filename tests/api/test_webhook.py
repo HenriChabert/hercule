@@ -1,13 +1,15 @@
+from uuid import uuid4
+
 import pytest
 from fastapi.testclient import TestClient
-from uuid import uuid4
 from sqlalchemy.orm.session import Session
+
 from src.app.models.webhook import Webhook
 from tests.helpers.fakers.webhook import WebhookFaker
 
 webhook_faker = WebhookFaker()
 
-def test_create_webhook_success(client: TestClient):
+def test_create_webhook_success(db_sync: Session, client: TestClient):
     fake_webhook = webhook_faker.get_fake()
     response = client.post("/api/v1/webhook", json={
         "name": fake_webhook.name,
@@ -17,9 +19,12 @@ def test_create_webhook_success(client: TestClient):
     data = response.json()
     assert data["name"] == fake_webhook.name
     assert data["url"] == fake_webhook.url
-    assert "id" in data
-    assert "created_at" in data
-    assert "updated_at" in data
+
+
+    webhook = db_sync.query(Webhook).filter(Webhook.id == data["id"]).first()
+    assert webhook is not None
+    assert webhook.name == fake_webhook.name
+    assert webhook.url == fake_webhook.url
 
 def test_create_webhook_invalid_url(client: TestClient):
     webhook_data = {
@@ -66,7 +71,7 @@ def test_update_webhook_success(db_sync: Session, client: TestClient):
     webhook_id = webhook.id
     
     # Then update it
-    new_fake_webhook = webhook_faker.get_fake()
+    new_fake_webhook = webhook_faker.get_fake(fields={"name": "test"})
     response = client.put(f"/api/v1/webhook/{webhook_id}", json={
         "name": new_fake_webhook.name,
     })
@@ -74,6 +79,13 @@ def test_update_webhook_success(db_sync: Session, client: TestClient):
     data = response.json()
     assert data["name"] == new_fake_webhook.name
     assert data["url"] == webhook.url
+
+    db_sync.expire_all()
+
+    new_webhook = db_sync.query(Webhook).filter(Webhook.id == webhook_id).first()
+    assert new_webhook is not None
+    assert new_webhook.name == new_fake_webhook.name
+    assert new_webhook.url == webhook.url
 
 def test_update_webhook_not_found(client: TestClient):
     new_fake_webhook = webhook_faker.get_fake()

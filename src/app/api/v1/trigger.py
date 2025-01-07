@@ -57,7 +57,7 @@ async def delete_trigger(
 class TriggerRunPayload(BaseModel):
     event: EventType
     context: EventContext
-    web_push_subscription: dict[str, Any] | None
+    web_push_subscription: dict[str, Any] | None = None
 
 @router.post("/trigger/{trigger_id}/run")
 async def run_trigger(
@@ -72,7 +72,7 @@ async def run_trigger(
 class TriggerEventPayload(BaseModel):
     event: EventType
     context: EventContext
-    web_push_subscription: dict[str, Any] | None
+    web_push_subscription: dict[str, Any] | None = None
 
 
 @router.post("/triggers/event")

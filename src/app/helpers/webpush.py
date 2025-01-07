@@ -13,14 +13,12 @@ settings = Settings()
 wp = WebPush(
     public_key=settings.PUBLIC_KEY_PATH,
     private_key=settings.PRIVATE_KEY_PATH,
-    subscriber="admin@mail.com",
+    subscriber="chabhenrib@gmail.com",
 )
-
 
 async def send_webpush(
     subscription_data: dict[str, Any], payload: Mapping[str, Any]
 ) -> bool:
-    logger.info(f"Sending webpush to {subscription_data}")
     try:
         subscription = WebPushSubscription.model_validate(subscription_data)
         message = wp.get(
@@ -37,7 +35,11 @@ async def send_webpush(
                 data=message.encrypted,
                 headers=cast(Mapping[str, str], message.headers),
             )
-            logger.info(f"Webpush sent to {subscription.endpoint}")
+            curl_equivalent = f"curl -X POST {subscription.endpoint} -d {message.encrypted}"
+            for header, value in message.headers.items():
+                curl_equivalent += f" -H '{header}: {value}'"
+
+            logger.info(subscription.model_dump_json())
     except Exception as e:
         logger.error(f"Webpush failed to send to {subscription.endpoint}: {e}")
         return False
