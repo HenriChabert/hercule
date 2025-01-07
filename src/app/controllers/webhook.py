@@ -77,7 +77,7 @@ class WebhookController(BaseController[WebhookSchema, WebhookModel]):
 
         body = {
             "event": event,
-            "payload": payload,
+            "context": payload,
             "webhook_usage_id": webhook_usage_callback_id,
         }
 

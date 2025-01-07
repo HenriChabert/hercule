@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from playwright.sync_api import BrowserContext
-from webpush import VAPID, WebPushSubscription  # type: ignore
+from webpush import WebPushSubscription  # type: ignore
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(f"{current_dir}/../.env.test", override=True)

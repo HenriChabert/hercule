@@ -65,6 +65,7 @@ class EnvironmentSettings(BaseSettings):
 
 class WebPushSettings(BaseSettings):
   APP_SERVER_KEY: str = config("APP_SERVER_KEY", default="")
+  SUBSCRIBER_EMAIL: str = config("SUBSCRIBER_EMAIL", default="chabhenrib@gmail.com")
   PUBLIC_KEY_PATH: str = config("PUBLIC_KEY_PATH", default=os.path.join(secrets_dir, "public_key.pem"))
   PRIVATE_KEY_PATH: str = config("PRIVATE_KEY_PATH", default=os.path.join(secrets_dir, "private_key.pem"))
 
