@@ -23,13 +23,15 @@ def test_web_push_notification(
     console_logs: list[str] = []
     push_test_page.on("console", lambda msg: console_logs.append(msg.text))
 
+    push_test_page.wait_for_timeout(2000)
+
     response = client.post(
         "/api/v1/webpush/send",
         json={"subscription": push_sub, "payload": {"message": "Test notification"}},
     )
     assert response.status_code == 200
 
-    received = push_test_page.wait_for_function("window.pushReceived", timeout=10000)
+    received = push_test_page.wait_for_function("window.pushReceived", timeout=2000)
     assert received
 
     assert len(console_logs) > 0
