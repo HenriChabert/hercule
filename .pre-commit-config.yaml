@@ -5,5 +5,5 @@ repos:
         name: Run tests with Pytest before push
         entry: poetry run pytest
         language: system
-        stages: [push]
+        stages: [pre-push]
         pass_filenames: false
