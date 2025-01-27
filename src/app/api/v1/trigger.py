@@ -31,10 +31,10 @@ async def get_trigger(
 
 @router.get("/triggers")
 async def get_triggers(
-    db: Annotated[AsyncSession, Depends(async_get_db)], event: EventType | None = None
+    db: Annotated[AsyncSession, Depends(async_get_db)], event: EventType | None = None, url: str | None = None
 ):
     trigger_ctrl = TriggerController(db)
-    return await trigger_ctrl.list(event=event)
+    return await trigger_ctrl.list(event=event, url=url)
 
 
 @router.put("/trigger/{trigger_id}")

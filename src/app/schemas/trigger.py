@@ -49,7 +49,7 @@ def event_field_factory(**kwargs: Any):
 class TriggerBase(BaseModel):
     model_config = {"from_attributes": False}
     webhook_id: str | None = webhook_id_field_factory(default=None)
-    url_regex: str = url_regex_field_factory(default=".*")
+    url_regex: str | None = url_regex_field_factory(default=".*")
     source: TriggerSource = source_field_factory(default="n8n")
     event: EventType = event_field_factory(default="button_clicked")
     name: str = name_field_factory()
