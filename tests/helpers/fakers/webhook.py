@@ -1,11 +1,12 @@
 import datetime
+from typing import NotRequired, TypedDict, TypeVar, cast
 
-from sqlalchemy.orm.session import Session
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import cast, TypedDict, NotRequired, TypeVar
+from sqlalchemy.orm.session import Session
 
-from src.app.core.db.database import Base
 from src.app import models
+from src.app.core.db.database import Base
+
 from .base import BaseFaker
 
 T = TypeVar("T", bound=Base)
@@ -32,8 +33,5 @@ class WebhookFaker(BaseFaker[models.Webhook]):
             updated_at=fields.get("updated_at", datetime.datetime.now()),
         )
 
-    def create_fake(self, db: Session, fields: WebhookFields | None = None) -> models.Webhook:
-        return self.create_fake_object(db, self.get_fake, fields)
-
-    async def create_fake_webhook_async(self, db: AsyncSession, fields: WebhookFields | None = None) -> models.Webhook:
-        return await self.create_fake_object_async(db, self.get_fake, fields)
+    async def create_fake(self, db: AsyncSession, fields: WebhookFields | None = None) -> models.Webhook:
+        return await self.create_fake_object(db, self.get_fake, fields)

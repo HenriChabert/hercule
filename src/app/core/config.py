@@ -38,18 +38,19 @@ class SecuritySettings(BaseSettings):
 class DatabaseSettings(BaseSettings):
   pass
 
-class TestSettings(BaseSettings):
-  SQLITE_URI_TEST: str = config("SQLITE_URI_TEST", default="./sql_app_test.db")
-
 class SQLiteSettings(BaseSettings):
   SQLITE_DB_NAME: str = config("SQLITE_DB_NAME", default="sql_app.db")
   SQLITE_SYNC_PREFIX: str = config("SQLITE_SYNC_PREFIX", default="sqlite:///")
   SQLITE_ASYNC_PREFIX: str = config("SQLITE_ASYNC_PREFIX", default="sqlite+aiosqlite:///")
 
   @property
-  def SQLITE_URI(self) -> str:
+  def SQLITE_DB_PATH(self) -> str:
     config_settings = ConfigSettings()
     return f"{config_settings.ABSOLUTE_CONFIG_DIR}/{self.SQLITE_DB_NAME}"
+  
+  @property
+  def SQLITE_URI(self) -> str:
+    return f"{self.SQLITE_ASYNC_PREFIX}{self.SQLITE_DB_PATH}"
 
 
 class EnvironmentOption(Enum):
@@ -77,7 +78,6 @@ class Settings(
   DatabaseSettings,
   AppSettings,
   SQLiteSettings,
-  TestSettings,
   SecuritySettings,
   EnvironmentSettings,
   WebPushSettings,

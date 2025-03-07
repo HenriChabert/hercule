@@ -1,19 +1,30 @@
 import os
-from typing import Any, AsyncGenerator, Type, TypeVar
-from sqlalchemy import create_engine
+from typing import Any, Type, TypeVar
+
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.ext.asyncio.session import AsyncSession, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase, MappedAsDataclass, sessionmaker, Session
+from sqlalchemy.orm import DeclarativeBase, MappedAsDataclass, Session
+
 from src.app.core.logger import logging
 
 logger = logging.getLogger(__name__)
 
-from ..config import settings
+import contextlib
+from typing import AsyncIterator
 
-T = TypeVar('T', bound=DeclarativeBase)
+from sqlalchemy.ext.asyncio import (
+    AsyncConnection,
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+
 
 class Base(DeclarativeBase, MappedAsDataclass):
     pass
+
+T = TypeVar('T', bound=DeclarativeBase)
 
 class ModelMixin(DeclarativeBase):
   # we build a mixin with a common method we would like to impl
@@ -29,57 +40,73 @@ class ModelMixin(DeclarativeBase):
       _session.add(_object)
       _session.commit()
     return _object
+  
+class SQLiteDatabaseHandler:
+    path: str
 
-DATABASE_URI = settings.SQLITE_URI
+    def __init__(self, path: str):
+        self.path = path
 
-async_engine = create_async_engine(
-    f"{settings.SQLITE_ASYNC_PREFIX}{DATABASE_URI}", echo=False, future=True
-)
-sync_engine = create_engine(
-    f"{settings.SQLITE_SYNC_PREFIX}{DATABASE_URI}", echo=False, future=True
-)
+    def _create_db_parent_dir(self):
+        os.makedirs(self.path, exist_ok=True)
 
-
-def create_config_dir_if_not_exists() -> None:
-    if not os.path.exists(settings.ABSOLUTE_CONFIG_DIR):
-        print(f"Creating config directory: {settings.ABSOLUTE_CONFIG_DIR}")
-        logger.info(f"Creating config directory: {settings.ABSOLUTE_CONFIG_DIR}")
-        os.makedirs(settings.ABSOLUTE_CONFIG_DIR, exist_ok=True)
+    @property
+    def host(self) -> str:
+        return f"{self.path}"
+        
 
 
-def clean_db() -> None:
-    if os.path.exists(settings.SQLITE_URI):
-        os.remove(settings.SQLITE_URI)
-    sync_engine.dispose()
+class DatabaseSessionManager:
+    def __init__(self):
+        self._engine: AsyncEngine | None = None
+        self._sessionmaker: async_sessionmaker[AsyncSession] | None = None
 
+    def init(self, host: str):
+        self._engine = create_async_engine(host)
+        self._sessionmaker = async_sessionmaker(autocommit=False, bind=self._engine)
 
-def reinit_db() -> None:
-    clean_db()
-    create_config_dir_if_not_exists()
-    Base.metadata.create_all(sync_engine)
+    async def close(self):
+        if self._engine is None:
+            raise Exception("DatabaseSessionManager is not initialized")
+        await self._engine.dispose()
+        self._engine = None
+        self._sessionmaker = None
 
+    @contextlib.asynccontextmanager
+    async def connect(self) -> AsyncIterator[AsyncConnection]:
+        if self._engine is None:
+            raise Exception("DatabaseSessionManager is not initialized")
 
-def sync_get_db() -> Session:
-    sync_session = sessionmaker(
-        bind=sync_engine, class_=Session, expire_on_commit=False
-    )
-    session = sync_session()
-    return session
+        async with self._engine.begin() as connection:
+            try:
+                yield connection
+            except Exception:
+                await connection.rollback()
+                raise
 
+    @contextlib.asynccontextmanager
+    async def session(self) -> AsyncIterator[AsyncSession]:
+        if self._sessionmaker is None:
+            raise Exception("DatabaseSessionManager is not initialized")
 
-async def async_get_db() -> AsyncGenerator[AsyncSession]:
-    local_session = async_sessionmaker(
-        bind=async_engine, class_=AsyncSession, expire_on_commit=False
-    )
-    async_session = local_session
+        session = self._sessionmaker()
+        try:
+            yield session
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
 
-    async with async_session() as db:
-        yield db
+    # Used for testing
+    async def create_all(self, connection: AsyncConnection):
+        await connection.run_sync(Base.metadata.create_all)
 
+    async def drop_all(self, connection: AsyncConnection):
+        await connection.run_sync(Base.metadata.drop_all)
 
-async def init_db() -> None:
-    create_config_dir_if_not_exists()
+session_manager = DatabaseSessionManager()
 
-    logger.info(f"Creating database: {settings.SQLITE_URI}")
-    async with async_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+async def async_get_db() -> AsyncIterator[AsyncSession]:
+    async with session_manager.session() as session:
+        yield session

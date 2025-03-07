@@ -1,6 +1,9 @@
 from uuid import uuid4
 
+import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.session import Session
 
 from src.app.models import Trigger, Webhook, WebhookUsage
@@ -11,10 +14,11 @@ from tests.helpers.fakers.webhook import WebhookFaker
 trigger_faker = TriggerFaker()
 webhook_faker = WebhookFaker()
 
-
-def test_create_trigger_success(db_sync: Session, client: TestClient):
+@pytest.mark.asyncio
+async def test_create_trigger_success(client: TestClient, db: AsyncSession):
     trigger = trigger_faker.get_fake()
-    webhook = webhook_faker.create_fake(db_sync)
+    webhook = await webhook_faker.create_fake(db)
+    
     response = client.post(
         "/api/v1/trigger",
         json={
@@ -22,18 +26,21 @@ def test_create_trigger_success(db_sync: Session, client: TestClient):
             "webhook_id": webhook.id,
         },
     )
+
     assert response.status_code == 201
     data = response.json()
     assert data["name"] == trigger.name
     assert data["webhook_id"] == webhook.id
 
-    trigger = db_sync.query(Trigger).filter(Trigger.id == data["id"]).first()
+    trigger_result = await db.execute(select(Trigger).where(Trigger.id == data["id"]))
+    trigger = trigger_result.scalar_one_or_none()
     assert trigger is not None
     assert trigger.name == trigger.name
     assert trigger.webhook_id == webhook.id
 
 
-def test_create_trigger_with_webhook_url(db_sync: Session, client: TestClient):
+@pytest.mark.asyncio
+async def test_create_trigger_with_webhook_url(db: AsyncSession, client: TestClient):
     trigger = trigger_faker.get_fake()
     response = client.post(
         "/api/v1/trigger",
@@ -46,14 +53,14 @@ def test_create_trigger_with_webhook_url(db_sync: Session, client: TestClient):
     data = response.json()
     assert data["name"] == trigger.name
 
-    webhook = (
-        db_sync.query(Webhook).filter(Webhook.url == "https://example.com").first()
-    )
+    webhook = await db.execute(select(Webhook).where(Webhook.url == "https://example.com"))
+    webhook = webhook.scalar_one_or_none()
     assert webhook is not None
     assert data["webhook_id"] == webhook.id
 
 
-def test_create_trigger_invalid_webhook(client: TestClient):
+@pytest.mark.asyncio
+async def test_create_trigger_invalid_webhook(client: TestClient):
     fake_trigger = trigger_faker.get_fake()
     response = client.post(
         "/api/v1/trigger",
@@ -65,9 +72,10 @@ def test_create_trigger_invalid_webhook(client: TestClient):
     assert response.status_code == 422
 
 
-def test_get_trigger_success(db_sync: Session, client: TestClient):
+@pytest.mark.asyncio
+async def test_get_trigger_success(db: AsyncSession, client: TestClient):
     # First create a trigger
-    trigger = trigger_faker.create_fake(db_sync)
+    trigger = await trigger_faker.create_fake(db)
 
     # Then get it
     response = client.get(f"/api/v1/trigger/{trigger.id}")
@@ -82,10 +90,11 @@ def test_get_trigger_not_found(client: TestClient):
     assert response.status_code == 404
 
 
-def test_list_triggers(db_sync: Session, client: TestClient):
+@pytest.mark.asyncio
+async def test_list_triggers(db: AsyncSession, client: TestClient):
     # Create two triggers
-    _ = trigger_faker.create_fake(db_sync)
-    _ = trigger_faker.create_fake(db_sync)
+    _ = await trigger_faker.create_fake(db)
+    _ = await trigger_faker.create_fake(db)
 
     response = client.get("/api/v1/triggers")
     assert response.status_code == 200
@@ -94,10 +103,11 @@ def test_list_triggers(db_sync: Session, client: TestClient):
     assert isinstance(data, list)
 
 
-def test_list_triggers_with_event(db_sync: Session, client: TestClient):
+@pytest.mark.asyncio
+async def test_list_triggers_with_event(db: AsyncSession, client: TestClient):
     # Create two triggers
-    _ = trigger_faker.create_fake(db_sync, {"event": "page_opened"})
-    _ = trigger_faker.create_fake(db_sync, {"event": "button_clicked"})
+    _ = await trigger_faker.create_fake(db, {"event": "page_opened"})
+    _ = await trigger_faker.create_fake(db, {"event": "button_clicked"})
 
     response = client.get("/api/v1/triggers?event=page_opened")
     assert response.status_code == 200
@@ -111,9 +121,10 @@ def test_list_triggers_no_key(client_no_key: TestClient):
     assert response.status_code == 403
 
 
-def test_update_trigger_success(db_sync: Session, client: TestClient):
+@pytest.mark.asyncio
+async def test_update_trigger_success(db: AsyncSession, client: TestClient):
     # First create a trigger
-    trigger = trigger_faker.create_fake(db_sync)
+    trigger = await trigger_faker.create_fake(db)
     trigger_id = trigger.id
 
     # Then update it
@@ -141,35 +152,39 @@ def test_update_trigger_not_found(client: TestClient):
     assert response.status_code == 404
 
 
-def test_delete_trigger_success(db_sync: Session, client: TestClient):
+@pytest.mark.asyncio
+async def test_delete_trigger_success(db: AsyncSession, client: TestClient):
     # First create a trigger
-    trigger = trigger_faker.create_fake(db_sync)
+    trigger = await trigger_faker.create_fake(db)
 
     # Then delete it
     response = client.delete(f"/api/v1/trigger/{trigger.id}")
     assert response.status_code == 200
 
     # Verify it's gone
-    triggers = db_sync.query(Trigger).all()
+    triggers = await db.execute(select(Trigger))
+    triggers = triggers.scalars().all()
     assert len(triggers) == 0
 
 
-def test_delete_trigger_not_found(client: TestClient):
+@pytest.mark.asyncio
+async def test_delete_trigger_not_found(client: TestClient):
     response = client.delete(f"/api/v1/trigger/{uuid4()}")
     assert response.status_code == 404
 
 
-def test_run_trigger_success(db_sync: Session, client: TestClient, test_api_url: str):
+@pytest.mark.asyncio
+async def test_run_trigger_success(db: AsyncSession, client: TestClient, test_api_url: str):
 
-    webhook = webhook_faker.create_fake(
-        db_sync,
+    webhook = await webhook_faker.create_fake(
+        db,
         {
             "url": f"{test_api_url}/test_webhook",
         },
     )
 
-    trigger = trigger_faker.create_fake(
-        db_sync,
+    trigger = await trigger_faker.create_fake(
+        db,
         {
             "webhook_id": webhook.id,
         },
@@ -187,16 +202,17 @@ def test_run_trigger_success(db_sync: Session, client: TestClient, test_api_url:
     assert data["status"] == "success"
 
 
-def test_trigger_event_success(db_sync: Session, client: TestClient, test_api_url: str):
-    webhook = webhook_faker.create_fake(
-        db_sync,
+@pytest.mark.asyncio
+async def test_trigger_event_success(db: AsyncSession, client: TestClient, test_api_url: str):
+    webhook = await webhook_faker.create_fake(
+        db,
         {
             "url": f"{test_api_url}/test_webhook",
         },
     )
 
-    _ = trigger_faker.create_fake(
-        db_sync, {"webhook_id": webhook.id, "event": "page_opened"}
+    _ = await trigger_faker.create_fake(
+        db, {"webhook_id": webhook.id, "event": "page_opened"}
     )
 
     payload = {"url": "https://example.com"}
@@ -209,23 +225,23 @@ def test_trigger_event_success(db_sync: Session, client: TestClient, test_api_ur
     data = response.json()
     assert len(data) == 1
     
-    db_sync.expire_all()
-
-    webhook_usage = db_sync.query(WebhookUsage).filter(WebhookUsage.webhook_id == webhook.id).first()
+    webhook_usage = await db.execute(select(WebhookUsage).where(WebhookUsage.webhook_id == webhook.id))
+    webhook_usage = webhook_usage.scalar_one_or_none()
 
     assert webhook_usage is not None
     assert webhook_usage.status == "success"
 
-def test_trigger_event_error(db_sync: Session, client: TestClient, test_api_url: str):
-    webhook = webhook_faker.create_fake(
-        db_sync,
+@pytest.mark.asyncio
+async def test_trigger_event_error(db: AsyncSession, client: TestClient, test_api_url: str):
+    webhook = await webhook_faker.create_fake(
+        db,
         {
             "url": f"{test_api_url}/test_webhook_error",
         },
     )
 
-    _ = trigger_faker.create_fake(
-        db_sync, {"webhook_id": webhook.id, "event": "page_opened"}
+    _ = await trigger_faker.create_fake(
+        db, {"webhook_id": webhook.id, "event": "page_opened"}
     )
 
     payload = {"url": "https://example.com"}
@@ -240,10 +256,9 @@ def test_trigger_event_error(db_sync: Session, client: TestClient, test_api_url:
 
     assert details["status"] == 500
     assert details["message"] == '{"detail":"Test Error"}'
-
-    db_sync.expire_all()
-
-    webhook_usage = db_sync.query(WebhookUsage).filter(WebhookUsage.webhook_id == webhook.id).first()
+    
+    webhook_usage = await db.execute(select(WebhookUsage).where(WebhookUsage.webhook_id == webhook.id))
+    webhook_usage = webhook_usage.scalar_one_or_none()
 
     assert webhook_usage is not None
     assert webhook_usage.status == "error"
@@ -251,18 +266,19 @@ def test_trigger_event_error(db_sync: Session, client: TestClient, test_api_url:
 
 
 
-def test_trigger_event_show_console_action(
-    db_sync: Session, client: TestClient, test_api_url: str
+@pytest.mark.asyncio
+async def test_trigger_event_show_console_action(
+    db: AsyncSession, client: TestClient, test_api_url: str
 ):
-    webhook = webhook_faker.create_fake(
-        db_sync,
+    webhook = await webhook_faker.create_fake(
+        db,
         {
             "url": f"{test_api_url}/test_show_console_action",
         },
     )
 
-    _ = trigger_faker.create_fake(
-        db_sync, {"webhook_id": webhook.id, "event": "page_opened"}
+    _ = await trigger_faker.create_fake(
+        db, {"webhook_id": webhook.id, "event": "page_opened"}
     )
 
     payload = {"url": "https://example.com"}
