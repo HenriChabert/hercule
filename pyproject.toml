@@ -20,10 +20,13 @@ pytest-asyncio = "^0.24.0"
 python-dotenv = "^1.0.1"
 greenlet = "^3.1.1"
 sqlmodel = "^0.0.22"
-webpush = "^1.0.3"
+webpush = "^1.0.5"
 aiohttp = "^3.11.11"
 pytest-playwright = "^0.6.2"
 playwright = "^1.49.1"
+pip = "^25.0.1"
+nest-asyncio = "^1.6.0"
+pytest-asyncio-cooperative = "^0.37.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -32,6 +35,7 @@ pre-commit = "^4.0.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
 
 # pyproject.toml
 [tool.pytest.ini_options]

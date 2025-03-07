@@ -1,40 +1,47 @@
-from typing import Any, AsyncContextManager
-from fastapi import FastAPI, APIRouter
+import os
 from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
+from typing import Any, AsyncContextManager
+
+from fastapi import FastAPI
+
+from src.app.api import router
+from src.app.core.config import settings
+
 from .config import Settings
-from .db.database import Base, async_engine as engine, init_db
+from .db.database import session_manager
 from .logger import logging
 
 logger = logging.getLogger(__name__)
 
-# -------------- database --------------
-async def create_tables() -> None:
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-
 # -------------- application --------------
+
+def init_config_dir():
+    config_dir = settings.CONFIG_DIR
+    os.makedirs(config_dir, exist_ok=True)
+    return config_dir
 
 
 def lifespan_factory(
-    settings: Settings,
     create_tables_on_start: bool = True,
 ) -> Callable[[FastAPI], AsyncContextManager[Any]]:
     """Factory to create a lifespan async context manager for a FastAPI app."""
+    session_manager.init(settings.SQLITE_URI)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         if create_tables_on_start:
             logger.info("Creating database tables")
-            await init_db()
+            async with session_manager.connect() as connection:
+                await session_manager.create_all(connection)
         yield
+        if session_manager._engine is not None: # type: ignore
+            await session_manager.close()
 
     return lifespan
 
-def create_application(
-    router: APIRouter,
-    settings: Settings,
+def init_app(
+    init_db: bool = True,
     create_tables_on_start: bool = True,
     **kwargs: Any,
 ) -> FastAPI:
@@ -48,12 +55,18 @@ def create_application(
     kwargs.update(to_update)
 
     kwargs.update({"docs_url": None, "redoc_url": None, "openapi_url": None})
-        
-    lifespan = lifespan_factory(settings, create_tables_on_start=create_tables_on_start)
+    
+    lifespan: Callable[[FastAPI], AsyncContextManager[Any]] | None = None
+    if init_db:
+        lifespan = lifespan_factory(create_tables_on_start=create_tables_on_start)
 
     app = FastAPI(
         lifespan=lifespan,
         **kwargs,
     )
+
+    init_config_dir()
+
     app.include_router(router)
+    
     return app

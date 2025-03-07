@@ -3,7 +3,6 @@ from uuid import uuid4
 
 from fastapi import HTTPException
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.webhook import Webhook as WebhookModel
 from ..schemas.webhook import Webhook as WebhookSchema
@@ -25,13 +24,11 @@ class WebhookCRUD(BaseCRUD[WebhookSchema, WebhookModel]):
 
     async def _read_orm(self, id: str, allow_none: bool = True) -> WebhookModel | None:
         query = select(WebhookModel).where(WebhookModel.id == id)
-
+        
         result = await self.db.execute(query)
-
         webhook = result.scalar_one_or_none()
         if not webhook and not allow_none:
             raise HTTPException(status_code=404, detail="Webhook not found")
-
         return webhook
 
     async def create(self, data: WebhookCreate) -> WebhookSchema:

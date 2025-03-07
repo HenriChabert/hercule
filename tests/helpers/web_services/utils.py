@@ -1,9 +1,12 @@
+import os
 import threading
 from time import sleep
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
 def run_test_server(app: FastAPI, host: str, port: int):
     """Runs a FastAPI app on a separate thread."""

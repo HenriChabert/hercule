@@ -1,11 +1,14 @@
 import datetime
 import random as rd
-from sqlalchemy.orm import Session
-from typing import cast, TypedDict, NotRequired
+from typing import NotRequired, TypedDict, cast
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.app import models
+from src.app.models.trigger import EventType, TriggerSource
+
 from .base import BaseFaker
 from .webhook import WebhookFaker, WebhookFields
-from src.app.models.trigger import TriggerSource, EventType
 
 
 class TriggerFields(TypedDict):
@@ -31,14 +34,16 @@ class TriggerFaker(BaseFaker[models.Trigger]):
             webhook_id=fields.get("webhook_id", str(self.fake.uuid4()))
         )
     
-    def create_fake(self, db: Session, fields: TriggerFields | None = None) -> models.Trigger:
+    async def create_fake(self, db: AsyncSession, fields: TriggerFields | None = None) -> models.Trigger:
         webhook_faker = WebhookFaker()
         if fields is None:
             fields = TriggerFields()
 
         if not "webhook_id" in fields:
-            webhook = webhook_faker.create_fake(db, WebhookFields())
+            webhook = await webhook_faker.create_fake(db, WebhookFields())
             fields["webhook_id"] = webhook.id
 
-        return self.create_fake_object(db, self.get_fake, fields)
+        new_trigger = await self.create_fake_object(db, self.get_fake, fields)
+
+        return new_trigger
     

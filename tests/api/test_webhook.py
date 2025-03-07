@@ -2,6 +2,8 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.session import Session
 
 from src.app.models.webhook import Webhook
@@ -9,7 +11,8 @@ from tests.helpers.fakers.webhook import WebhookFaker
 
 webhook_faker = WebhookFaker()
 
-def test_create_webhook_success(db_sync: Session, client: TestClient):
+@pytest.mark.asyncio
+async def test_create_webhook_success(db: AsyncSession, client: TestClient):
     fake_webhook = webhook_faker.get_fake()
     response = client.post("/api/v1/webhook", json={
         "name": fake_webhook.name,
@@ -21,7 +24,8 @@ def test_create_webhook_success(db_sync: Session, client: TestClient):
     assert data["url"] == fake_webhook.url
 
 
-    webhook = db_sync.query(Webhook).filter(Webhook.id == data["id"]).first()
+    webhook = await db.execute(select(Webhook).where(Webhook.id == data["id"]))
+    webhook = webhook.scalar_one_or_none()
     assert webhook is not None
     assert webhook.name == fake_webhook.name
     assert webhook.url == fake_webhook.url
@@ -35,9 +39,10 @@ def test_create_webhook_invalid_url(client: TestClient):
     response = client.post("/api/v1/webhook", json=webhook_data)
     assert response.status_code == 422
 
-def test_get_webhook_success(db_sync: Session, client: TestClient):
+@pytest.mark.asyncio
+async def test_get_webhook_success(db: AsyncSession, client: TestClient):
     # First create a webhook
-    webhook = webhook_faker.create_fake(db_sync)
+    webhook = await webhook_faker.create_fake(db)
     
     # Then get it
     response = client.get(f"/api/v1/webhook/{webhook.id}")
@@ -50,10 +55,11 @@ def test_get_webhook_not_found(client: TestClient):
     response = client.get(f"/api/v1/webhook/{uuid4()}")
     assert response.status_code == 404
 
-def test_list_webhooks(db_sync: Session, client: TestClient):
+@pytest.mark.asyncio
+async def test_list_webhooks(db: AsyncSession, client: TestClient):
     # Create two webhooks
-    _ = webhook_faker.create_fake(db_sync)
-    _ = webhook_faker.create_fake(db_sync)
+    _ = await webhook_faker.create_fake(db)
+    _ = await webhook_faker.create_fake(db)
     
     response = client.get("/api/v1/webhooks")
     assert response.status_code == 200
@@ -65,9 +71,10 @@ def test_list_webhooks_no_key(client_no_key: TestClient):
     response = client_no_key.get("/api/v1/webhooks")
     assert response.status_code == 403
 
-def test_update_webhook_success(db_sync: Session, client: TestClient):
+@pytest.mark.asyncio
+async def test_update_webhook_success(db: AsyncSession, client: TestClient):
     # First create a webhook
-    webhook = webhook_faker.create_fake(db_sync)
+    webhook = await webhook_faker.create_fake(db)
     webhook_id = webhook.id
     
     # Then update it
@@ -79,10 +86,9 @@ def test_update_webhook_success(db_sync: Session, client: TestClient):
     data = response.json()
     assert data["name"] == new_fake_webhook.name
     assert data["url"] == webhook.url
-
-    db_sync.expire_all()
-
-    new_webhook = db_sync.query(Webhook).filter(Webhook.id == webhook_id).first()
+    
+    new_webhook = await db.execute(select(Webhook).where(Webhook.id == webhook_id))
+    new_webhook = new_webhook.scalar_one_or_none()
     assert new_webhook is not None
     assert new_webhook.name == new_fake_webhook.name
     assert new_webhook.url == webhook.url
@@ -94,16 +100,18 @@ def test_update_webhook_not_found(client: TestClient):
     })
     assert response.status_code == 404
 
-def test_delete_webhook_success(db_sync: Session, client: TestClient):
+@pytest.mark.asyncio
+async def test_delete_webhook_success(db: AsyncSession, client: TestClient):
     # First create a webhook
-    fake_webhook = webhook_faker.create_fake(db_sync)
+    fake_webhook = await webhook_faker.create_fake(db)
     
     # Then delete it
     response = client.delete(f"/api/v1/webhook/{fake_webhook.id}")
     assert response.status_code == 200
     
     # Verify it's gone
-    webhooks = db_sync.query(Webhook).all()
+    webhooks = await db.execute(select(Webhook))
+    webhooks = webhooks.scalars().all()
     assert len(webhooks) == 0
 
 def test_delete_webhook_not_found(client: TestClient):
