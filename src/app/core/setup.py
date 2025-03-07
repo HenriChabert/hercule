@@ -1,3 +1,4 @@
+import os
 from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from typing import Any, AsyncContextManager
@@ -14,6 +15,11 @@ from .logger import logging
 logger = logging.getLogger(__name__)
 
 # -------------- application --------------
+
+def init_config_dir():
+    config_dir = settings.CONFIG_DIR
+    os.makedirs(config_dir, exist_ok=True)
+    return config_dir
 
 
 def lifespan_factory(
@@ -58,6 +64,8 @@ def init_app(
         lifespan=lifespan,
         **kwargs,
     )
+
+    init_config_dir()
 
     app.include_router(router)
     

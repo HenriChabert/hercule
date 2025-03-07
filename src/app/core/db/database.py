@@ -40,21 +40,6 @@ class ModelMixin(DeclarativeBase):
       _session.add(_object)
       _session.commit()
     return _object
-  
-class SQLiteDatabaseHandler:
-    path: str
-
-    def __init__(self, path: str):
-        self.path = path
-
-    def _create_db_parent_dir(self):
-        os.makedirs(self.path, exist_ok=True)
-
-    @property
-    def host(self) -> str:
-        return f"{self.path}"
-        
-
 
 class DatabaseSessionManager:
     def __init__(self):
@@ -62,6 +47,8 @@ class DatabaseSessionManager:
         self._sessionmaker: async_sessionmaker[AsyncSession] | None = None
 
     def init(self, host: str):
+        print(f"Initializing database session manager with host: {host}")
+        
         self._engine = create_async_engine(host)
         self._sessionmaker = async_sessionmaker(autocommit=False, bind=self._engine)
 
