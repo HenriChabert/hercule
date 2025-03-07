@@ -40,6 +40,7 @@ def reset_db_each_test():
     yield
     clean_db()
 
+
 def test_server_url_fixture(create_fn: Callable[[], FastAPI]):
     host = "127.0.0.1"
     port = find_free_port()
@@ -55,6 +56,7 @@ def test_server_url_fixture(create_fn: Callable[[], FastAPI]):
 @pytest.fixture(scope="session")
 def test_api_url() -> Generator[str, Any, None]:
     yield from test_server_url_fixture(create_test_api)
+
 
 @pytest.fixture(scope="session")
 def test_web_server_url() -> Generator[str, Any, None]:
@@ -116,11 +118,12 @@ def browser_context() -> Generator[BrowserContext, Any, None]:
             args=[
                 "--enable-features=NetworkService,NetworkServiceInProcess --allow-silent-push --enable-logging=stderr"
             ],
-            service_workers="allow"
+            service_workers="allow",
         )
 
         yield context
         context.close()
+
 
 @pytest.fixture
 def push_test_page(test_web_server_url: str, browser_context: BrowserContext):
@@ -134,6 +137,7 @@ def push_test_page(test_web_server_url: str, browser_context: BrowserContext):
     yield page
 
     page.close()
+
 
 @pytest.fixture
 def push_subscription(push_test_page: Page):
@@ -162,7 +166,9 @@ def push_subscription(push_test_page: Page):
                     });
                 });
             });
-        }""" % settings.APP_SERVER_KEY)
+        }"""
+            % settings.APP_SERVER_KEY
+        )
     )
 
     yield subscription
