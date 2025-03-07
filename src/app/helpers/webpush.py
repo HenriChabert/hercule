@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any, Mapping, cast
 
 import aiohttp
@@ -11,8 +12,8 @@ logger = logging.getLogger(__name__)
 settings = Settings()
 
 wp = WebPush(
-    public_key=settings.PUBLIC_KEY_PATH,
-    private_key=settings.PRIVATE_KEY_PATH,
+    public_key=Path(settings.PUBLIC_KEY_PATH),
+    private_key=Path(settings.PRIVATE_KEY_PATH),
     subscriber=settings.SUBSCRIBER_EMAIL,
 )
 
