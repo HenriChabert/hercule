@@ -21,6 +21,12 @@ class ConfigSettings(BaseSettings):
   CONFIG_DIR: str = config("CONFIG_DIR", default=current_file_dir)
   ABSOLUTE_CONFIG_DIR: str = os.path.expanduser(os.path.expanduser(config("CONFIG_DIR", default=current_file_dir)))
 
+class LoggingSettings(BaseSettings):
+  @property
+  def LOG_DIR(self) -> str:
+    config_settings = ConfigSettings()
+    return f"{config_settings.ABSOLUTE_CONFIG_DIR}/logs"
+
 class AppSettings(BaseSettings):
   APP_NAME: str = config("APP_NAME", default="FastAPI app")
   APP_DESCRIPTION: str = config("APP_DESCRIPTION", default="")
@@ -82,6 +88,7 @@ class Settings(
   EnvironmentSettings,
   WebPushSettings,
   ApiSettings,
+  LoggingSettings,
   BaseSettings
 ):
   model_config = SettingsConfigDict(

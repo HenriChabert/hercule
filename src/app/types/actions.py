@@ -1,6 +1,4 @@
-from typing import Literal, TypeAlias, TypedDict
-
-ActionType: TypeAlias = Literal['show_alert']
+from typing import Literal, NotRequired, TypeAlias, TypedDict
 
 # Show Alert
 
@@ -29,4 +27,22 @@ class InjectScriptAction(TypedDict):
   type: Literal['inject_script']
   params: InjectScriptActionParams
 
-Action: TypeAlias = ShowAlertAction | ShowConsoleAction | InjectScriptAction
+# Insert Button
+
+class ButtonParams(TypedDict):
+  label: str
+  variant: Literal['primary', 'secondary', 'success', 'danger', 'warning']
+  size: Literal['small', 'medium', 'large']
+  position: Literal['top-right', 'top-left', 'bottom-right', 'bottom-left', 'in-content']
+  parent_css_selector: NotRequired[str]
+
+class InsertButtonActionParams(TypedDict):
+  button: ButtonParams
+  button_action: Literal['launch_trigger']
+  trigger_id: NotRequired[str]
+
+class InsertButtonAction(TypedDict):
+  type: Literal['insert_button']
+  params: InsertButtonActionParams
+
+Action: TypeAlias = ShowAlertAction | ShowConsoleAction | InjectScriptAction | InsertButtonAction
