@@ -25,7 +25,6 @@ async def log_request_info(request: Request):
 
     logger.info(
         f"{request.method} request to {request.url} metadata\n"
-        f"\tHeaders: {request.headers}\n"
         f"\tBody: {request_body}\n"
         f"\tPath Params: {request.path_params}\n"
         f"\tQuery Params: {request.query_params}\n"
@@ -84,8 +83,7 @@ def init_app(
 
     router_dependencies: Sequence[DependsT] = []
 
-    if settings.ENVIRONMENT == EnvironmentOption.LOCAL:
-        router_dependencies = [Depends(log_request_info)]
+    # router_dependencies = [Depends(log_request_info)]
 
     app.include_router(router, dependencies=router_dependencies)
     

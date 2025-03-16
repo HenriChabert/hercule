@@ -101,6 +101,9 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
         web_push_subscription: dict[str, Any] | None = None,
     ) -> List[WebhookCallResult]:
         triggers_results: list[WebhookCallResult] = []
+        print(f"Context: {context.keys()}")
+        print(f"Event: {event}")
+
         if "trigger_id" in context:
             triggers = [await self.read_safe(context["trigger_id"])]
         else:
@@ -108,11 +111,12 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
 
         triggers_to_trigger: list[TriggerSchema] = []
 
+        print(f"Triggers: {triggers}")
+
         for trigger in triggers:
             if self.should_trigger(trigger, context):
                 triggers_to_trigger.append(trigger)
 
-        print(f"Triggers to trigger: {triggers_to_trigger}")
         for trigger in triggers_to_trigger:
             trigger_result = await self.trigger(
                 trigger.id, event, context, web_push_subscription
