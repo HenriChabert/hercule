@@ -17,7 +17,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.session import Session
 
-from src.app.core.config import settings
+from src.app.core.config import settings, Settings
+import src.app.core.config as config
 from src.app.core.db.database import async_get_db, session_manager
 from src.app.core.setup import init_app
 
@@ -42,6 +43,7 @@ def client(app: FastAPI) -> Generator[TestClient, Any, None]:
             "HERCULE_SECRET_KEY", ""
         )
         yield c
+        config.settings = Settings()
 
 @pytest_asyncio.fixture(scope="session", autouse=True)  # type: ignore
 async def connection_test():

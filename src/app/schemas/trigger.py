@@ -4,9 +4,9 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from ..core.schemas import IDSchema, TimestampSchema
-from ..models.trigger import TriggerSource
-from ..types.events import EventType
+from src.app.core.schemas import IDSchema, TimestampSchema
+from src.app.models.trigger import TriggerSource
+from src.app.types.events import EventType
 
 
 @wraps(Field)

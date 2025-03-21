@@ -28,6 +28,7 @@ class AppSettings(BaseSettings):
   LICENSE_NAME: str | None = config("LICENSE", default=None)
   CONTACT_NAME: str | None = config("CONTACT_NAME", default=None)
   CONTACT_EMAIL: str | None = config("CONTACT_EMAIL", default=None)
+  SECRET_KEY: str = config("JWT_SECRET_KEY", default="your-secret-key-here")
 
 class SecuritySettings(BaseSettings):
   HERCULE_PORT: int = config("HERCULE_PORT", default=8000)
@@ -35,10 +36,13 @@ class SecuritySettings(BaseSettings):
   HERCULE_SECRET_KEY: str = config("HERCULE_SECRET_KEY", default="my_secret_key")
   HERCULE_HEADER_NAME: str = config("HERCULE_HEADER_NAME", default="X-Hercule-Secret-Key")
 
+class AuthSettings(BaseSettings):
+  AUTH_REQUIRED: bool = config("AUTH_REQUIRED", default=True)
+
 class DatabaseSettings(BaseSettings):
   pass
 
-class SQLiteSettings(BaseSettings):
+class SQLiteSettings(BaseSettings): 
   SQLITE_DB_NAME: str = config("SQLITE_DB_NAME", default="sql_app.db")
   SQLITE_SYNC_PREFIX: str = config("SQLITE_SYNC_PREFIX", default="sqlite:///")
   SQLITE_ASYNC_PREFIX: str = config("SQLITE_ASYNC_PREFIX", default="sqlite+aiosqlite:///")
@@ -82,6 +86,7 @@ class Settings(
   EnvironmentSettings,
   WebPushSettings,
   ApiSettings,
+  AuthSettings,
   BaseSettings
 ):
   model_config = SettingsConfigDict(
