@@ -3,12 +3,12 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.app.api.dependencies import check_secret_key_header
+from src.app.api.dependencies import get_current_user
 from src.app.controllers.webhook import WebhookController
 from src.app.core.db.database import async_get_db
 from src.app.schemas.webhook import WebhookCreate, WebhookUpdate
 
-router = APIRouter(tags=["webhook"], dependencies=[Depends(check_secret_key_header)])
+router = APIRouter(tags=["webhook"], dependencies=[Depends(get_current_user)])
 
 @router.post("/webhook", status_code=status.HTTP_201_CREATED)
 async def create_webhook(webhook: WebhookCreate, db: Annotated[AsyncSession, Depends(async_get_db)]):

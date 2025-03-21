@@ -12,9 +12,9 @@ from src.app.core.config import settings
 header_scheme = APIKeyHeader(name="X-Hercule-Secret-Key")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login", auto_error=False)
 
-def check_secret_key_header(secret_key: str = Depends(header_scheme)):
+def is_user_admin(secret_key: str = Depends(header_scheme)):
     if not check_secret_key(secret_key):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid secret key")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="This resource is only available to admins")
     return True
 
 async def get_current_user(

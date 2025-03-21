@@ -6,11 +6,11 @@ class UserBase(BaseModel):
     email: EmailStr
     hashed_password: str
 
-class UserUnsafeBase(UserBase):
-    email: EmailStr
-
 class User(UserBase, IDSchema, TimestampSchema):
     pass
+
+class UserUnsafe(BaseModel):
+    email: EmailStr
 
 class UserCreate(UserBase):
     password: str

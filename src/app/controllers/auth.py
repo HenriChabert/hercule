@@ -2,9 +2,10 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app.schemas.auth import AuthLogin, Token
-from src.app.schemas.user import User as UserSchema
+from src.app.schemas.user import User as UserSchema, UserUnsafe
 from src.app.controllers.user import UserController
 from src.app.core.security import create_access_token, verify_password, verify_token
+from src.app.schemas.auth import AuthLoginResponse
 
 class AuthController:
     def __init__(self, db: AsyncSession):
@@ -14,7 +15,7 @@ class AuthController:
         user_ctrl = UserController(self.db)
         return user_ctrl.get_anon_user()
 
-    async def login(self, auth_login: AuthLogin) -> Token:
+    async def login(self, auth_login: AuthLogin) -> AuthLoginResponse:
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
@@ -29,7 +30,18 @@ class AuthController:
             raise credentials_exception
 
         access_token = create_access_token(data={"sub": user.email})
-        return Token(access_token=access_token)
+        user_unsafe = UserUnsafe(
+            email=user.email,
+        )
+        return AuthLoginResponse(user=user_unsafe, token=Token(access_token=access_token))
+    
+    async def logout(self, token: str) -> None:
+        pass
+
+    async def get_me(self, user: UserSchema) -> UserUnsafe:
+        return UserUnsafe(
+            email=user.email
+        )
 
     async def get_current_user(self, token: str) -> UserSchema:
         credentials_exception = HTTPException(

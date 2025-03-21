@@ -4,13 +4,13 @@ from fastapi import APIRouter, Body, Depends, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.app.api.dependencies import check_secret_key_header
+from src.app.api.dependencies import get_current_user
 from src.app.controllers.trigger import TriggerController
 from src.app.core.db.database import async_get_db
 from src.app.schemas.trigger import TriggerCreateClient, TriggerUpdate
 from src.app.types.events import EventContext, EventType
 
-router = APIRouter(tags=["trigger"], dependencies=[Depends(check_secret_key_header)])
+router = APIRouter(tags=["trigger"], dependencies=[Depends(get_current_user)])
 
 
 @router.post("/trigger", status_code=status.HTTP_201_CREATED)

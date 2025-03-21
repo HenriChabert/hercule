@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 
-from ..core.schemas import IDSchema, TimestampSchema
+from src.app.schemas.user import User, UserUnsafe
 
 class AuthBase(BaseModel):
     email: EmailStr
@@ -8,6 +8,10 @@ class AuthBase(BaseModel):
 
 class AuthLogin(AuthBase):
     pass
+
+class AuthLoginResponse(BaseModel):
+    user: UserUnsafe
+    token: 'Token'
 
 class Token(BaseModel):
     access_token: str

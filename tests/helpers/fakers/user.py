@@ -2,8 +2,6 @@ import datetime
 from typing import NotRequired, TypedDict
 
 from src.app import models
-from src.app.models.user import User
-from src.app.schemas.user import UserCreate
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .base import BaseFaker

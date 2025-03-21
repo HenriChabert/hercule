@@ -33,7 +33,7 @@ class AppSettings(BaseSettings):
 class SecuritySettings(BaseSettings):
   HERCULE_PORT: int = config("HERCULE_PORT", default=8000)
   HERCULE_PWD: str = config("HERCULE_PWD", default="")
-  HERCULE_SECRET_KEY: str = config("HERCULE_SECRET_KEY", default="my_secret_key")
+  HERCULE_ADMIN_SECRET_KEY: str = config("HERCULE_ADMIN_SECRET_KEY", default="my_secret_key")
   HERCULE_HEADER_NAME: str = config("HERCULE_HEADER_NAME", default="X-Hercule-Secret-Key")
 
 class AuthSettings(BaseSettings):

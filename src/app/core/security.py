@@ -3,13 +3,10 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from jwt import encode as jwt_encode, decode as jwt_decode, PyJWTError
-from passlib.context import CryptContext
 from pydantic import EmailStr
+import bcrypt
 
 from src.app.core.config import settings
-
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT settings
 SECRET_KEY = settings.SECRET_KEY
@@ -17,10 +14,14 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    password_byte_enc = plain_password.encode('utf-8')
+    return bcrypt.checkpw(password = password_byte_enc, hashed_password=hashed_password.encode('utf-8'))
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    pwd_bytes = password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(password=pwd_bytes, salt=salt)
+    return hashed_password.decode('utf-8')
 
 def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
@@ -44,7 +45,7 @@ def verify_token(token: str) -> EmailStr | None:
         return None
 
 def check_secret_key(secret_key: str) -> bool:
-    return secret_key == settings.HERCULE_SECRET_KEY
+    return secret_key == settings.HERCULE_ADMIN_SECRET_KEY
 
 def check_request_secret_key(request: Request) -> bool:
     secret_key = request.headers.get("X-Hercule-Secret-Key")

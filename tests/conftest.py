@@ -40,7 +40,7 @@ def app():
 def client(app: FastAPI) -> Generator[TestClient, Any, None]:
     with TestClient(app) as c:
         c.headers[settings.HERCULE_HEADER_NAME] = os.getenv(
-            "HERCULE_SECRET_KEY", ""
+            "HERCULE_ADMIN_SECRET_KEY", ""
         )
         yield c
         config.settings = Settings()
