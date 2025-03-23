@@ -40,7 +40,7 @@ class UserCRUD(BaseCRUD[UserSchema, UserModel]):
         result = await self.db.execute(query)
         user = result.scalar_one_or_none()
         if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            return None
         return self.model_to_schema(user)
 
     async def list(self, **kwargs: Any) -> list[UserSchema]:

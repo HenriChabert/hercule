@@ -9,24 +9,22 @@ from src.app.seeders.user import UserSeeder
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+
 async def seed_database(session: AsyncSession) -> None:
     trigger_seeder = TriggerSeeder(session)
     webhook_seeder = WebhookSeeder(session)
 
-    webhooks = await webhook_seeder.seed(fields={
-        "url": "https://n8n.andover.ai/webhook-test/test-on-trigger-clicked"
-    })
+    webhooks = await webhook_seeder.seed(
+        fields={"url": "https://n8n.andover.ai/webhook-test/test-on-trigger-clicked"}
+    )
 
-    _ = await trigger_seeder.seed(fields={
-        "name": "n8n Webhook Test",
-        "webhook_id": webhooks[-1].id
-    })
+    _ = await trigger_seeder.seed(
+        fields={"name": "n8n Webhook Test", "webhook_id": webhooks[-1].id}
+    )
 
     await trigger_seeder.seed(n=9)
 
     user_seeder = UserSeeder(session)
-    await user_seeder.seed(n=1, fields={
-        "email": "test@test.com",
-        "role": "admin",
-        "password": "test"
-    })
+    await user_seeder.seed(
+        n=1, fields={"email": "test@test.com", "role": "admin", "password": "test"}
+    )

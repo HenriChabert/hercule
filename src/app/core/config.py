@@ -1,8 +1,9 @@
 import os
-from enum import Enum
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.config import Config
+from typing import TypeAlias, Literal, cast
+
 
 current_file_dir = os.path.dirname(os.path.realpath(__file__))
 project_src_dir = os.path.dirname(os.path.dirname(current_file_dir))
@@ -14,6 +15,7 @@ env_filename = ".env"
 if os.environ.get("ENVIRONMENT") == "test":
     env_filename = ".env.test"
 
+print(os.environ.get("ENVIRONMENT"))
 env_path = os.path.join(project_root_dir, env_filename)
 config = Config(env_path)
 
@@ -65,17 +67,12 @@ class SQLiteSettings(BaseSettings):
         return f"{self.SQLITE_ASYNC_PREFIX}{self.SQLITE_DB_PATH}"
 
 
-class EnvironmentOption(Enum):
-    TEST = "test"
-    DEV = "dev"
-    LOCAL = "local"
-    STAGING = "staging"
-    PRODUCTION = "production"
+EnvironmentOption: TypeAlias = Literal["test", "dev", "local", "staging", "production"]
 
 
 class EnvironmentSettings(BaseSettings):
-    ENVIRONMENT: EnvironmentOption = config(
-        "ENVIRONMENT", default=EnvironmentOption.LOCAL
+    ENVIRONMENT: EnvironmentOption = cast(
+        EnvironmentOption, config("ENVIRONMENT", default="local")
     )
 
 

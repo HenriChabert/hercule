@@ -8,7 +8,6 @@ from fastapi import FastAPI
 from src.app.api import router
 from src.app.core.config import settings
 
-from .config import Settings
 from .db.database import session_manager
 from .logger import logging
 
@@ -18,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def init_config_dir():
-    config_dir = settings.CONFIG_DIR
+    config_dir = settings.ABSOLUTE_CONFIG_DIR
     os.makedirs(config_dir, exist_ok=True)
     return config_dir
 
@@ -58,6 +57,8 @@ def init_app(
 
     kwargs.update({"docs_url": None, "redoc_url": None, "openapi_url": None})
 
+    init_config_dir()
+
     lifespan: Callable[[FastAPI], AsyncContextManager[Any]] | None = None
     if init_db:
         lifespan = lifespan_factory(create_tables_on_start=create_tables_on_start)
@@ -66,8 +67,6 @@ def init_app(
         lifespan=lifespan,
         **kwargs,
     )
-
-    init_config_dir()
 
     app.include_router(router)
 
