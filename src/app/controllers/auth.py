@@ -32,6 +32,7 @@ class AuthController:
         access_token = create_access_token(data={"sub": user.email})
         user_unsafe = UserUnsafe(
             email=user.email,
+            role=user.role,
         )
         return AuthLoginResponse(user=user_unsafe, token=Token(access_token=access_token))
     
@@ -40,7 +41,8 @@ class AuthController:
 
     async def get_me(self, user: UserSchema) -> UserUnsafe:
         return UserUnsafe(
-            email=user.email
+            email=user.email,
+            role=user.role,
         )
 
     async def get_current_user(self, token: str) -> UserSchema:

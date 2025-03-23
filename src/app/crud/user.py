@@ -16,6 +16,7 @@ class UserCRUD(BaseCRUD[UserSchema, UserModel]):
         model_dump = {
             "id": model.id,
             "email": model.email,
+            "role": model.role,
             "hashed_password": model.hashed_password,
             "is_active": model.is_active,
             "created_at": model.created_at,

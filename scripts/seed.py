@@ -27,5 +27,6 @@ async def seed_database(session: AsyncSession) -> None:
     user_seeder = UserSeeder(session)
     await user_seeder.seed(n=1, fields={
         "email": "test@test.com",
+        "role": "admin",
         "password": "test"
     })

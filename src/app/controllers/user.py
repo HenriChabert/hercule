@@ -19,6 +19,7 @@ class UserController(BaseController[UserSchema, UserModel]):
         return UserSchema(
             id="anonymous",
             email="anonymous@example.com",
+            role="user",
             hashed_password="",
             created_at=datetime.now(),
             updated_at=datetime.now()

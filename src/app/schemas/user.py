@@ -1,15 +1,18 @@
 from pydantic import BaseModel, EmailStr
 
-from ..core.schemas import IDSchema, TimestampSchema
+from src.app.core.schemas import IDSchema, TimestampSchema
+from src.app.models.user import UserRole
 
 class UserBase(BaseModel):
     email: EmailStr
+    role: UserRole
     hashed_password: str
 
 class User(UserBase, IDSchema, TimestampSchema):
     pass
 
 class UserUnsafe(BaseModel):
+    role: UserRole
     email: EmailStr
 
 class UserCreate(UserBase):
