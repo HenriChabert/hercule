@@ -2,6 +2,7 @@ from src.app.seeders.base import BaseSeeder
 from tests.helpers.fakers.user import UserFaker, UserFields
 from src.app.models.user import User
 
+
 class UserSeeder(BaseSeeder):
     async def seed(self, n: int = 1, fields: UserFields | None = None) -> list[User]:
         fakes: list[User] = []

@@ -3,8 +3,11 @@ from src.app.seeders.base import BaseSeeder
 from tests.helpers.fakers.webhook import WebhookFaker, WebhookFields
 from src.app.models.webhook import Webhook
 
+
 class WebhookSeeder(BaseSeeder):
-    async def seed(self, n: int = 1, fields: WebhookFields | None = None) -> list[Webhook]:
+    async def seed(
+        self, n: int = 1, fields: WebhookFields | None = None
+    ) -> list[Webhook]:
         fakes: list[Webhook] = []
         webhook_faker = WebhookFaker()
 

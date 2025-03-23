@@ -7,6 +7,7 @@ from src.app.controllers.user import UserController
 from src.app.core.security import create_access_token, verify_password, verify_token
 from src.app.schemas.auth import AuthLoginResponse
 
+
 class AuthController:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -34,8 +35,10 @@ class AuthController:
             email=user.email,
             role=user.role,
         )
-        return AuthLoginResponse(user=user_unsafe, token=Token(access_token=access_token))
-    
+        return AuthLoginResponse(
+            user=user_unsafe, token=Token(access_token=access_token)
+        )
+
     async def logout(self, token: str) -> None:
         pass
 
@@ -53,7 +56,7 @@ class AuthController:
         )
         if not token:
             raise credentials_exception
-        
+
         email = verify_token(token)
         if not email:
             raise credentials_exception

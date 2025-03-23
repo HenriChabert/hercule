@@ -11,6 +11,7 @@ from .base import BaseFaker
 
 T = TypeVar("T", bound=Base)
 
+
 class WebhookFields(TypedDict):
     id: NotRequired[str]
     name: NotRequired[str]
@@ -18,6 +19,7 @@ class WebhookFields(TypedDict):
     url: NotRequired[str]
     created_at: NotRequired[datetime.datetime]
     updated_at: NotRequired[datetime.datetime]
+
 
 class WebhookFaker(BaseFaker[models.Webhook]):
     def get_fake(self, fields: WebhookFields | None = None) -> models.Webhook:
@@ -33,5 +35,7 @@ class WebhookFaker(BaseFaker[models.Webhook]):
             updated_at=fields.get("updated_at", datetime.datetime.now()),
         )
 
-    async def create_fake(self, db: AsyncSession, fields: WebhookFields | None = None) -> models.Webhook:
+    async def create_fake(
+        self, db: AsyncSession, fields: WebhookFields | None = None
+    ) -> models.Webhook:
         return await self.create_fake_object(db, self.get_fake, fields)

@@ -24,22 +24,25 @@ from sqlalchemy.ext.asyncio import (
 class Base(DeclarativeBase, MappedAsDataclass):
     pass
 
-T = TypeVar('T', bound=DeclarativeBase)
+
+T = TypeVar("T", bound=DeclarativeBase)
+
 
 class ModelMixin(DeclarativeBase):
-  # we build a mixin with a common method we would like to impl
-  @classmethod
-  def get_or_create(cls: Type[T], *_, **kwargs: Any) -> T:
-    context_id = kwargs.get("id")
-    _session = Session.object_session(cls)
-    if not _session:
-        raise ValueError("Session not found")
-    _object = _session.query(cls).filter_by(id=context_id).first()
-    if not _object:
-      _object = cls(**kwargs)
-      _session.add(_object)
-      _session.commit()
-    return _object
+    # we build a mixin with a common method we would like to impl
+    @classmethod
+    def get_or_create(cls: Type[T], *_, **kwargs: Any) -> T:
+        context_id = kwargs.get("id")
+        _session = Session.object_session(cls)
+        if not _session:
+            raise ValueError("Session not found")
+        _object = _session.query(cls).filter_by(id=context_id).first()
+        if not _object:
+            _object = cls(**kwargs)
+            _session.add(_object)
+            _session.commit()
+        return _object
+
 
 class DatabaseSessionManager:
     def __init__(self):
@@ -48,7 +51,7 @@ class DatabaseSessionManager:
 
     def init(self, host: str):
         print(f"Initializing database session manager with host: {host}")
-        
+
         self._engine = create_async_engine(host)
         self._sessionmaker = async_sessionmaker(autocommit=False, bind=self._engine)
 
@@ -92,7 +95,9 @@ class DatabaseSessionManager:
     async def drop_all(self, connection: AsyncConnection):
         await connection.run_sync(Base.metadata.drop_all)
 
+
 session_manager = DatabaseSessionManager()
+
 
 async def async_get_db() -> AsyncIterator[AsyncSession]:
     async with session_manager.session() as session:

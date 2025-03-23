@@ -7,6 +7,7 @@ from typing import TypeAlias, Literal
 
 UserRole: TypeAlias = Literal["admin", "user"]
 
+
 class User(Base, ModelMixin, IDMixin, TimestampMixin, kw_only=True):
     __tablename__ = "users"
 

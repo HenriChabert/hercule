@@ -3,7 +3,6 @@ from fastapi.security import APIKeyHeader, OAuth2PasswordBearer
 from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.app.core.security import check_secret_key
 from src.app.controllers.auth import AuthController
 from src.app.core.db.database import async_get_db
 from src.app.schemas.user import User as UserSchema

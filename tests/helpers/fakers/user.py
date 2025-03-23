@@ -25,7 +25,10 @@ class UserFaker(BaseFaker[models.User]):
         if fields is None:
             fields = UserFields()
 
-        hashed_password = fields.get("hashed_password", get_password_hash(fields.get("password", self.fake.password(length=12))))
+        hashed_password = fields.get(
+            "hashed_password",
+            get_password_hash(fields.get("password", self.fake.password(length=12))),
+        )
 
         return models.User(
             id=fields.get("id", str(self.fake.uuid4())),
@@ -34,9 +37,11 @@ class UserFaker(BaseFaker[models.User]):
             hashed_password=hashed_password,  # bcrypt hash length
             is_active=fields.get("is_active", True),
             created_at=fields.get("created_at", datetime.datetime.now()),
-            updated_at=fields.get("updated_at", datetime.datetime.now())
+            updated_at=fields.get("updated_at", datetime.datetime.now()),
         )
 
-    async def create_fake(self, db: AsyncSession, fields: UserFields | None = None) -> models.User:
+    async def create_fake(
+        self, db: AsyncSession, fields: UserFields | None = None
+    ) -> models.User:
         new_user = await self.create_fake_object(db, self.get_fake, fields)
         return new_user

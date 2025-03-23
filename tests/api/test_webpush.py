@@ -15,7 +15,9 @@ def test_get_public_key(client_auth: TestClient):
 
 @pytest.mark.asyncio
 async def test_web_push_notification(
-    push_test_page: Page, push_subscription: WebPushSubscription, client_auth: TestClient
+    push_test_page: Page,
+    push_subscription: WebPushSubscription,
+    client_auth: TestClient,
 ):
     assert push_subscription is not None
 
@@ -33,7 +35,9 @@ async def test_web_push_notification(
     )
     assert response.status_code == 200
 
-    received = await push_test_page.wait_for_function("window.pushReceived", timeout=2000)
+    received = await push_test_page.wait_for_function(
+        "window.pushReceived", timeout=2000
+    )
     assert received
 
     assert len(console_logs) > 0

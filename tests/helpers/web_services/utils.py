@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
+
 def run_test_server(app: FastAPI, host: str, port: int):
     """Runs a FastAPI app on a separate thread."""
     config = uvicorn.Config(app, host=host, port=port, log_level="info")

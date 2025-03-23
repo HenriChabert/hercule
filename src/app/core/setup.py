@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 # -------------- application --------------
 
+
 def init_config_dir():
     config_dir = settings.CONFIG_DIR
     os.makedirs(config_dir, exist_ok=True)
@@ -35,10 +36,11 @@ def lifespan_factory(
             async with session_manager.connect() as connection:
                 await session_manager.create_all(connection)
         yield
-        if session_manager._engine is not None: # type: ignore
+        if session_manager._engine is not None:  # type: ignore
             await session_manager.close()
 
     return lifespan
+
 
 def init_app(
     init_db: bool = True,
@@ -55,7 +57,7 @@ def init_app(
     kwargs.update(to_update)
 
     kwargs.update({"docs_url": None, "redoc_url": None, "openapi_url": None})
-    
+
     lifespan: Callable[[FastAPI], AsyncContextManager[Any]] | None = None
     if init_db:
         lifespan = lifespan_factory(create_tables_on_start=create_tables_on_start)
@@ -68,5 +70,5 @@ def init_app(
     init_config_dir()
 
     app.include_router(router)
-    
+
     return app
