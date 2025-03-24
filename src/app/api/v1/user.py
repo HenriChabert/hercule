@@ -11,7 +11,7 @@ from src.app.schemas.user import User as UserSchema
 router = APIRouter(tags=["user"], dependencies=[Depends(get_current_admin_user)])
 
 
-@router.get("/user/{user_id}", status_code=status.HTTP_201_CREATED)
+@router.get("/user/{user_id}", status_code=status.HTTP_200_OK)
 async def get_user(
     user_id: str, db: Annotated[AsyncSession, Depends(async_get_db)]
 ) -> UserSchema:
@@ -19,7 +19,7 @@ async def get_user(
     return await user_ctrl.read_safe(user_id)
 
 
-@router.get("/users", status_code=status.HTTP_201_CREATED)
+@router.get("/users", status_code=status.HTTP_200_OK)
 async def get_users(
     db: Annotated[AsyncSession, Depends(async_get_db)],
 ) -> list[UserSchema]:
