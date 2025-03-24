@@ -4,11 +4,11 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.app.api.dependencies import get_current_user, oauth2_scheme
+from src.app.controllers.auth import AuthController
 from src.app.core.db.database import async_get_db
 from src.app.schemas.auth import AuthLogin, AuthLoginResponse, UserUnsafe
 from src.app.schemas.user import User as UserSchema
-from src.app.controllers.auth import AuthController
-from src.app.api.dependencies import get_current_user, oauth2_scheme
 
 router = APIRouter(tags=["auth"])
 

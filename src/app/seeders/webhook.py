@@ -1,7 +1,6 @@
-from src.app.seeders.base import BaseSeeder
-
-from tests.helpers.fakers.webhook import WebhookFaker, WebhookFields
 from src.app.models.webhook import Webhook
+from src.app.seeders.base import BaseSeeder
+from tests.helpers.fakers.webhook import WebhookFaker, WebhookFields
 
 
 class WebhookSeeder(BaseSeeder):

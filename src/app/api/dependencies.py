@@ -1,12 +1,13 @@
-from fastapi import Depends, Security, HTTPException, status
-from fastapi.security import APIKeyHeader, OAuth2PasswordBearer
 from typing import Annotated
+
+from fastapi import Depends, HTTPException, Security, status
+from fastapi.security import APIKeyHeader, OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app.controllers.auth import AuthController
+from src.app.core.config import settings
 from src.app.core.db.database import async_get_db
 from src.app.schemas.user import User as UserSchema
-from src.app.core.config import settings
 
 header_scheme = APIKeyHeader(name="X-Hercule-Secret-Key")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login", auto_error=False)

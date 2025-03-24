@@ -3,11 +3,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.app.api.dependencies import get_current_user, get_current_admin_user
+from src.app.api.dependencies import get_current_admin_user, get_current_user
 from src.app.controllers.webhook import WebhookController
 from src.app.core.db.database import async_get_db
-from src.app.schemas.webhook import WebhookCreate, WebhookUpdate
 from src.app.schemas.user import User as UserSchema
+from src.app.schemas.webhook import WebhookCreate, WebhookUpdate
 
 router = APIRouter(tags=["webhook"], dependencies=[Depends(get_current_user)])
 

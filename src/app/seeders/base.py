@@ -1,6 +1,7 @@
-from sqlalchemy.ext.asyncio import AsyncSession
 from abc import ABC, abstractmethod
 from typing import Any, Mapping
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class BaseSeeder(ABC):

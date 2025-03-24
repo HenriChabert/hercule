@@ -1,6 +1,6 @@
+from src.app.models.user import User
 from src.app.seeders.base import BaseSeeder
 from tests.helpers.fakers.user import UserFaker, UserFields
-from src.app.models.user import User
 
 
 class UserSeeder(BaseSeeder):

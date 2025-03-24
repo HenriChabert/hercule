@@ -1,4 +1,4 @@
-from typing import Any, Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
@@ -6,9 +6,9 @@ from pydantic import BaseModel
 from webpush import WebPushSubscription  # type: ignore
 
 from src.app.api.dependencies import get_current_user
-from src.app.schemas.user import User as UserSchema
 from src.app.core.config import Settings
 from src.app.helpers.webpush import send_webpush as send_webpush_helper
+from src.app.schemas.user import User as UserSchema
 
 settings = Settings()
 router = APIRouter(tags=["webpush"], dependencies=[Depends(get_current_user)])

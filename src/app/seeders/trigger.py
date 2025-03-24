@@ -1,7 +1,6 @@
-from src.app.seeders.base import BaseSeeder
-
-from tests.helpers.fakers.trigger import TriggerFaker, TriggerFields
 from src.app.models.trigger import Trigger
+from src.app.seeders.base import BaseSeeder
+from tests.helpers.fakers.trigger import TriggerFaker, TriggerFields
 
 
 class TriggerSeeder(BaseSeeder):

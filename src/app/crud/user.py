@@ -5,8 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.user import User as UserModel
-from ..schemas.user import User as UserSchema, UserUpdateHashedPassword
-from ..schemas.user import UserCreate
+from ..schemas.user import User as UserSchema
+from ..schemas.user import UserCreate, UserUpdateHashedPassword
 from ..types.events import EventType
 from .base import BaseCRUD
 

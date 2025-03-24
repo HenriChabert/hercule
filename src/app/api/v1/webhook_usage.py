@@ -3,14 +3,14 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.app.api.dependencies import get_current_user
 
+from src.app.api.dependencies import get_current_user
 from src.app.controllers.webhook_usage import WebhookUsageController
 from src.app.core.config import Settings
 from src.app.core.db.database import async_get_db
+from src.app.schemas.user import User as UserSchema
 from src.app.schemas.webhook_usage import WebhookUsage as WebhookUsageSchema
 from src.app.schemas.webhook_usage import WebhookUsageCallbackPayload
-from src.app.schemas.user import User as UserSchema
 
 settings = Settings()
 router = APIRouter(tags=["webhook_usage"], dependencies=[Depends(get_current_user)])

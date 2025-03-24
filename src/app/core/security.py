@@ -1,10 +1,12 @@
-from fastapi import Request
 from datetime import datetime, timedelta
 from typing import Any
 
-from jwt import encode as jwt_encode, decode as jwt_decode, PyJWTError
-from pydantic import EmailStr
 import bcrypt
+from fastapi import Request
+from jwt import PyJWTError
+from jwt import decode as jwt_decode
+from jwt import encode as jwt_encode
+from pydantic import EmailStr
 
 from src.app.core.config import settings
 

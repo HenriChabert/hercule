@@ -1,9 +1,10 @@
+from typing import Literal, TypeAlias
+
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..core.db.database import Base, ModelMixin
 from ..core.db.models import IDMixin, TimestampMixin
-from typing import TypeAlias, Literal
 
 UserRole: TypeAlias = Literal["admin", "user"]
 

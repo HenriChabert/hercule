@@ -1,9 +1,8 @@
 import os
+from typing import Literal, TypeAlias, cast
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.config import Config
-from typing import TypeAlias, Literal, cast
-
 
 current_file_dir = os.path.dirname(os.path.realpath(__file__))
 project_src_dir = os.path.dirname(os.path.dirname(current_file_dir))

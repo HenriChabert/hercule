@@ -1,11 +1,12 @@
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.app.schemas.auth import AuthLogin, Token
-from src.app.schemas.user import User as UserSchema, UserUnsafe
 from src.app.controllers.user import UserController
-from src.app.core.security import create_access_token, verify_password, verify_token
-from src.app.schemas.auth import AuthLoginResponse
+from src.app.core.security import (create_access_token, verify_password,
+                                   verify_token)
+from src.app.schemas.auth import AuthLogin, AuthLoginResponse, Token
+from src.app.schemas.user import User as UserSchema
+from src.app.schemas.user import UserUnsafe
 
 
 class AuthController:
