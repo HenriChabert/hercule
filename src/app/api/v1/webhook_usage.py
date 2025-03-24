@@ -30,6 +30,7 @@ async def webhook_usage_callback(
 ):
     webhook_usage_ctrl = WebhookUsageController(db)
     success = await webhook_usage_ctrl.callback(webhook_usage_id, payload)
+
     if not success:
         raise HTTPException(status_code=400, detail="Failed to callback webhook usage")
     return JSONResponse(

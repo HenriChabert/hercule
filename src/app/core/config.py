@@ -12,82 +12,108 @@ secrets_dir = os.path.join(project_root_dir, "secrets")
 
 env_filename = ".env"
 if os.environ.get("ENVIRONMENT") == "test":
-  env_filename = ".env.test"
+    env_filename = ".env.test"
 
 env_path = os.path.join(project_root_dir, env_filename)
 config = Config(env_path)
 
+
 class ConfigSettings(BaseSettings):
-  CONFIG_DIR: str = config("CONFIG_DIR", default=current_file_dir)
-  ABSOLUTE_CONFIG_DIR: str = os.path.expanduser(os.path.expanduser(config("CONFIG_DIR", default=current_file_dir)))
+    CONFIG_DIR: str = config("CONFIG_DIR", default=current_file_dir)
+    ABSOLUTE_CONFIG_DIR: str = os.path.expanduser(
+        os.path.expanduser(config("CONFIG_DIR", default=current_file_dir))
+    )
+
+
+config_settings = ConfigSettings()
+
+
+class LoggingSettings(BaseSettings):
+    @property
+    def LOG_DIR(self) -> str:
+        return f"{config_settings.ABSOLUTE_CONFIG_DIR}/logs"
+
 
 class AppSettings(BaseSettings):
-  APP_NAME: str = config("APP_NAME", default="FastAPI app")
-  APP_DESCRIPTION: str = config("APP_DESCRIPTION", default="")
-  APP_VERSION: str = config("APP_VERSION", default="0.0.1")
-  LICENSE_NAME: str | None = config("LICENSE", default=None)
-  CONTACT_NAME: str | None = config("CONTACT_NAME", default=None)
-  CONTACT_EMAIL: str | None = config("CONTACT_EMAIL", default=None)
+    APP_NAME: str = config("APP_NAME", default="FastAPI app")
+    APP_DESCRIPTION: str = config("APP_DESCRIPTION", default="")
+    APP_VERSION: str = config("APP_VERSION", default="0.0.1")
+    LICENSE_NAME: str | None = config("LICENSE", default=None)
+    CONTACT_NAME: str | None = config("CONTACT_NAME", default=None)
+    CONTACT_EMAIL: str | None = config("CONTACT_EMAIL", default=None)
+
 
 class SecuritySettings(BaseSettings):
-  HERCULE_PORT: int = config("HERCULE_PORT", default=8000)
-  HERCULE_PWD: str = config("HERCULE_PWD", default="")
-  HERCULE_SECRET_KEY: str = config("HERCULE_SECRET_KEY", default="my_secret_key")
-  HERCULE_HEADER_NAME: str = config("HERCULE_HEADER_NAME", default="X-Hercule-Secret-Key")
+    HERCULE_PORT: int = config("HERCULE_PORT", default=8000)
+    HERCULE_PWD: str = config("HERCULE_PWD", default="")
+    HERCULE_SECRET_KEY: str = config("HERCULE_SECRET_KEY", default="my_secret_key")
+    HERCULE_HEADER_NAME: str = config(
+        "HERCULE_HEADER_NAME", default="X-Hercule-Secret-Key"
+    )
+
 
 class DatabaseSettings(BaseSettings):
-  pass
+    pass
+
 
 class SQLiteSettings(BaseSettings):
-  SQLITE_DB_NAME: str = config("SQLITE_DB_NAME", default="sql_app.db")
-  SQLITE_SYNC_PREFIX: str = config("SQLITE_SYNC_PREFIX", default="sqlite:///")
-  SQLITE_ASYNC_PREFIX: str = config("SQLITE_ASYNC_PREFIX", default="sqlite+aiosqlite:///")
+    SQLITE_DB_NAME: str = config("SQLITE_DB_NAME", default="sql_app.db")
+    SQLITE_SYNC_PREFIX: str = config("SQLITE_SYNC_PREFIX", default="sqlite:///")
+    SQLITE_ASYNC_PREFIX: str = config(
+        "SQLITE_ASYNC_PREFIX", default="sqlite+aiosqlite:///"
+    )
 
-  @property
-  def SQLITE_DB_PATH(self) -> str:
-    config_settings = ConfigSettings()
-    return f"{config_settings.ABSOLUTE_CONFIG_DIR}/{self.SQLITE_DB_NAME}"
-  
-  @property
-  def SQLITE_URI(self) -> str:
-    return f"{self.SQLITE_ASYNC_PREFIX}{self.SQLITE_DB_PATH}"
+    @property
+    def SQLITE_DB_PATH(self) -> str:
+        return f"{config_settings.ABSOLUTE_CONFIG_DIR}/{self.SQLITE_DB_NAME}"
+
+    @property
+    def SQLITE_URI(self) -> str:
+        return f"{self.SQLITE_ASYNC_PREFIX}{self.SQLITE_DB_PATH}"
 
 
 class EnvironmentOption(Enum):
-  TEST = "test"
-  DEV = "dev"
-  LOCAL = "local"
-  STAGING = "staging"
-  PRODUCTION = "production"
+    TEST = "test"
+    DEV = "dev"
+    LOCAL = "local"
+    STAGING = "staging"
+    PRODUCTION = "production"
 
 
 class EnvironmentSettings(BaseSettings):
-  ENVIRONMENT: EnvironmentOption = config("ENVIRONMENT", default=EnvironmentOption.LOCAL)
+    ENVIRONMENT: EnvironmentOption = config(
+        "ENVIRONMENT", default=EnvironmentOption.LOCAL
+    )
+
 
 class WebPushSettings(BaseSettings):
-  APP_SERVER_KEY: str = config("APP_SERVER_KEY", default="")
-  SUBSCRIBER_EMAIL: str = config("SUBSCRIBER_EMAIL", default="chabhenrib@gmail.com")
-  PUBLIC_KEY_PATH: str = config("PUBLIC_KEY_PATH", default=os.path.join(secrets_dir, "public_key.pem"))
-  PRIVATE_KEY_PATH: str = config("PRIVATE_KEY_PATH", default=os.path.join(secrets_dir, "private_key.pem"))
+    APP_SERVER_KEY: str = config("APP_SERVER_KEY", default="")
+    SUBSCRIBER_EMAIL: str = config("SUBSCRIBER_EMAIL", default="chabhenrib@gmail.com")
+    PUBLIC_KEY_PATH: str = config(
+        "PUBLIC_KEY_PATH", default=os.path.join(secrets_dir, "public_key.pem")
+    )
+    PRIVATE_KEY_PATH: str = config(
+        "PRIVATE_KEY_PATH", default=os.path.join(secrets_dir, "private_key.pem")
+    )
+
 
 class ApiSettings(BaseSettings):
-  API_URL: str = config("API_URL", default="http://localhost:8000/api/v1")
+    API_URL: str = config("API_URL", default="http://localhost:8000/api/v1")
+
 
 class Settings(
-  ConfigSettings,
-  DatabaseSettings,
-  AppSettings,
-  SQLiteSettings,
-  SecuritySettings,
-  EnvironmentSettings,
-  WebPushSettings,
-  ApiSettings,
-  BaseSettings
+    ConfigSettings,
+    DatabaseSettings,
+    AppSettings,
+    SQLiteSettings,
+    SecuritySettings,
+    EnvironmentSettings,
+    WebPushSettings,
+    ApiSettings,
+    LoggingSettings,
+    BaseSettings,
 ):
-  model_config = SettingsConfigDict(
-    env_file = ".env",
-    extra='ignore'
-  )
+    model_config = SettingsConfigDict(env_file=env_filename, extra="ignore")
 
 
 settings = Settings()
