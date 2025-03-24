@@ -16,6 +16,7 @@ from src.app.types.events import EventContext, EventType
 
 logger = logging.getLogger(__name__)
 
+
 class TriggerController(BaseController[TriggerSchema, TriggerModel]):
     def __init__(self, db: AsyncSession):
         super().__init__(db)
@@ -44,15 +45,17 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
         self, trigger_id: str, allow_none: bool = False
     ) -> TriggerSchema | None:
         return await self.crud.read(trigger_id, allow_none)
-    
+
     async def read_safe(self, trigger_id: str) -> TriggerSchema:
         return await self.crud.read_safe(trigger_id)
 
-    async def list(self, event: EventType | None = None, url: str | None = None) -> list[TriggerSchema]:
+    async def list(
+        self, event: EventType | None = None, url: str | None = None
+    ) -> list[TriggerSchema]:
         triggers_matching: list[TriggerSchema] = []
         event_triggers = await self.crud.list(event=event)
         for trigger in event_triggers:
-            if self.should_trigger(trigger, cast(EventContext, { "url": url })):
+            if self.should_trigger(trigger, cast(EventContext, {"url": url})):
                 triggers_matching.append(trigger)
         return triggers_matching
 
@@ -61,16 +64,16 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
 
     async def delete(self, trigger_id: str) -> None:
         return await self.crud.delete(trigger_id)
-    
+
     def should_trigger(self, trigger: TriggerSchema, context: EventContext) -> bool:
         if trigger.url_regex is not None:
             url = context.get("url")
             if url is not None and not re.match(trigger.url_regex, url):
                 return False
-            
+
         if "trigger_id" in context and context["trigger_id"] != trigger.id:
             return False
-        
+
         return True
 
     async def trigger(
@@ -85,10 +88,9 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
 
         if trigger.webhook_id is None:
             raise HTTPException(status_code=422, detail="Trigger should have a webhook")
-        
+
         if not self.should_trigger(trigger, context):
             raise HTTPException(status_code=422, detail="Trigger has been filtered out")
-        
 
         return await webhook_ctrl.call(
             trigger.webhook_id, event, context, web_push_subscription
@@ -101,8 +103,6 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
         web_push_subscription: dict[str, Any] | None = None,
     ) -> List[WebhookCallResult]:
         triggers_results: list[WebhookCallResult] = []
-        print(f"Context: {context.keys()}")
-        print(f"Event: {event}")
 
         if "trigger_id" in context:
             triggers = [await self.read_safe(context["trigger_id"])]
@@ -110,8 +110,6 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
             triggers = await self.list(event=event)
 
         triggers_to_trigger: list[TriggerSchema] = []
-
-        print(f"Triggers: {triggers}")
 
         for trigger in triggers:
             if self.should_trigger(trigger, context):
