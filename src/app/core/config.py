@@ -27,6 +27,15 @@ class ConfigSettings(BaseSettings):
     )
 
 
+config_settings = ConfigSettings()
+
+
+class LoggingSettings(BaseSettings):
+    @property
+    def LOG_DIR(self) -> str:
+        return f"{config_settings.ABSOLUTE_CONFIG_DIR}/logs"
+
+
 class AppSettings(BaseSettings):
     APP_NAME: str = config("APP_NAME", default="FastAPI app")
     APP_DESCRIPTION: str = config("APP_DESCRIPTION", default="")
@@ -59,7 +68,6 @@ class SQLiteSettings(BaseSettings):
 
     @property
     def SQLITE_DB_PATH(self) -> str:
-        config_settings = ConfigSettings()
         return f"{config_settings.ABSOLUTE_CONFIG_DIR}/{self.SQLITE_DB_NAME}"
 
     @property
@@ -101,9 +109,10 @@ class Settings(
     WebPushSettings,
     ApiSettings,
     AuthSettings,
+    LoggingSettings,
     BaseSettings,
 ):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=env_filename, extra="ignore")
 
 
 settings = Settings()

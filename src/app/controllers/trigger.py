@@ -71,6 +71,9 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
             if url is not None and not re.match(trigger.url_regex, url):
                 return False
 
+        if "trigger_id" in context and context["trigger_id"] != trigger.id:
+            return False
+
         return True
 
     async def trigger(
@@ -100,6 +103,7 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
         web_push_subscription: dict[str, Any] | None = None,
     ) -> List[WebhookCallResult]:
         triggers_results: list[WebhookCallResult] = []
+
         if "trigger_id" in context:
             triggers = [await self.read_safe(context["trigger_id"])]
         else:

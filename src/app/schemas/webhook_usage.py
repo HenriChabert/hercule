@@ -76,4 +76,4 @@ class WebhookUsageUpdate(BaseModel):
 
 
 class WebhookUsageCallbackPayload(BaseModel):
-    actions: list[Action] = Field(description="The actions to be performed")
+    action: Action = Field(description="The action to be performed")

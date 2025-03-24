@@ -39,6 +39,23 @@ async def test_create_trigger_success(client_admin: TestClient, db: AsyncSession
     assert trigger.name == trigger.name
     assert trigger.webhook_id == webhook.id
 
+@pytest.mark.asyncio
+async def test_create_trigger_with_manual_trigger_in_popup(db: AsyncSession, client: TestClient):
+    trigger = trigger_faker.get_fake()
+    webhook = await webhook_faker.create_fake(db)
+    
+    response = client.post(
+        "/api/v1/trigger",
+        json={
+            "name": trigger.name,
+            "event": "manual_trigger_in_popup",
+            "webhook_id": webhook.id,
+        },
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["name"] == trigger.name
+    assert data["webhook_id"] == webhook.id
 
 @pytest.mark.asyncio
 async def test_create_trigger_unauthorized(client_auth: TestClient):

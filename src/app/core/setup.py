@@ -1,12 +1,13 @@
 import os
 from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
-from typing import Any, AsyncContextManager
+from typing import Any, AsyncContextManager, Sequence
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Request
+from fastapi.params import Depends as DependsT
 
 from src.app.api import router
-from src.app.core.config import settings
+from src.app.core.config import EnvironmentOption, settings
 
 from .db.database import session_manager
 from .logger import logging
@@ -14,6 +15,20 @@ from .logger import logging
 logger = logging.getLogger(__name__)
 
 # -------------- application --------------
+
+
+async def log_request_info(request: Request):
+    try:
+        request_body = await request.json()
+    except Exception:
+        request_body = await request.body()
+
+    logger.info(
+        f"{request.method} request to {request.url} metadata\n"
+        f"\tBody: {request_body}\n"
+        f"\tPath Params: {request.path_params}\n"
+        f"\tQuery Params: {request.query_params}\n"
+    )
 
 
 def init_config_dir():
@@ -68,6 +83,10 @@ def init_app(
         **kwargs,
     )
 
-    app.include_router(router)
+    router_dependencies: Sequence[DependsT] = []
+
+    # router_dependencies = [Depends(log_request_info)]
+
+    app.include_router(router, dependencies=router_dependencies)
 
     return app
