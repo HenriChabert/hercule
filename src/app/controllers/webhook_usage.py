@@ -12,8 +12,10 @@ from src.app.helpers.webpush import send_webpush
 from src.app.models.webhook_usage import WebhookUsage as WebhookUsageModel
 from src.app.models.webhook_usage import WebhookUsageStatus
 from src.app.schemas.webhook_usage import WebhookUsage as WebhookUsageSchema
-from src.app.schemas.webhook_usage import (WebhookUsageCallbackPayload,
-                                           WebhookUsageCreate)
+from src.app.schemas.webhook_usage import (
+    WebhookUsageCallbackPayload,
+    WebhookUsageCreate,
+)
 
 logger = logging.getLogger(__name__)
 

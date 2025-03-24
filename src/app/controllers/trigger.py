@@ -10,8 +10,7 @@ from src.app.controllers.webhook import WebhookCallResult, WebhookController
 from src.app.crud.trigger import TriggerCRUD
 from src.app.models.trigger import Trigger as TriggerModel
 from src.app.schemas.trigger import Trigger as TriggerSchema
-from src.app.schemas.trigger import (TriggerCreate, TriggerCreateClient,
-                                     TriggerUpdate)
+from src.app.schemas.trigger import TriggerCreate, TriggerCreateClient, TriggerUpdate
 from src.app.schemas.webhook import WebhookCreate
 from src.app.types.events import EventContext, EventType
 
