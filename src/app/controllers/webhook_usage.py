@@ -35,8 +35,10 @@ class WebhookUsageController(BaseController[WebhookUsageSchema, WebhookUsageMode
         return cast(
             WebhookUsageSchema, await self.crud.read(webhook_usage_id, allow_none=False)
         )
-    
-    async def update_status(self, webhook_usage_id: str, status: WebhookUsageStatus) -> WebhookUsageSchema:
+
+    async def update_status(
+        self, webhook_usage_id: str, status: WebhookUsageStatus
+    ) -> WebhookUsageSchema:
         return await self.crud.update_status(webhook_usage_id, status)
 
     def get_callback_url(self, webhook_usage_id: str) -> str:
@@ -55,5 +57,5 @@ class WebhookUsageController(BaseController[WebhookUsageSchema, WebhookUsageMode
             )
 
         await send_webpush(webpush_sub_data, payload.model_dump())
-        
+
         return True

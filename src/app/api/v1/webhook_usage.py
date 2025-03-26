@@ -4,19 +4,22 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.app.api.dependencies import get_current_user
 from src.app.controllers.webhook_usage import WebhookUsageController
 from src.app.core.config import Settings
 from src.app.core.db.database import async_get_db
+from src.app.schemas.user import User as UserSchema
 from src.app.schemas.webhook_usage import WebhookUsage as WebhookUsageSchema
 from src.app.schemas.webhook_usage import WebhookUsageCallbackPayload
 
 settings = Settings()
-router = APIRouter(tags=["webhook_usage"])
+router = APIRouter(tags=["webhook_usage"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/webhook-usage/{webhook_usage_id}")
 async def get_webhook_usage(
-    webhook_usage_id: str, db: Annotated[AsyncSession, Depends(async_get_db)]
+    webhook_usage_id: str,
+    db: Annotated[AsyncSession, Depends(async_get_db)],
 ) -> WebhookUsageSchema:
     webhook_usage_ctrl = WebhookUsageController(db)
     return await webhook_usage_ctrl.read_safe(webhook_usage_id)
@@ -26,7 +29,7 @@ async def get_webhook_usage(
 async def webhook_usage_callback(
     webhook_usage_id: str,
     payload: WebhookUsageCallbackPayload,
-    db: Annotated[AsyncSession, Depends(async_get_db)]
+    db: Annotated[AsyncSession, Depends(async_get_db)],
 ):
     webhook_usage_ctrl = WebhookUsageController(db)
     success = await webhook_usage_ctrl.callback(webhook_usage_id, payload)

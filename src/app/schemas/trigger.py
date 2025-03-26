@@ -4,9 +4,9 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from ..core.schemas import IDSchema, TimestampSchema
-from ..models.trigger import TriggerSource
-from ..types.events import EventType
+from src.app.core.schemas import IDSchema, TimestampSchema
+from src.app.models.trigger import TriggerSource
+from src.app.types.events import EventType
 
 
 @wraps(Field)
@@ -46,6 +46,11 @@ def event_field_factory(**kwargs: Any):
     )
 
 
+@wraps(Field)
+def user_id_field_factory(**kwargs: Any):
+    return Field(description="The ID of the user", examples=[str(uuid4())], **kwargs)
+
+
 class TriggerBase(BaseModel):
     model_config = {"from_attributes": False}
     webhook_id: str | None = webhook_id_field_factory(default=None)
@@ -53,6 +58,7 @@ class TriggerBase(BaseModel):
     source: TriggerSource = source_field_factory(default="n8n")
     event: EventType = event_field_factory(default="button_clicked")
     name: str = name_field_factory()
+    user_id: str | None = user_id_field_factory(default=None)
 
 
 class Trigger(TriggerBase, IDSchema, TimestampSchema):

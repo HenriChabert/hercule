@@ -20,6 +20,7 @@ class TriggerFields(TypedDict):
     created_at: NotRequired[datetime.datetime]
     updated_at: NotRequired[datetime.datetime]
 
+
 class TriggerFaker(BaseFaker[models.Trigger]):
     def get_fake(self, fields: TriggerFields | None = None) -> models.Trigger:
         if fields is None:
@@ -31,10 +32,12 @@ class TriggerFaker(BaseFaker[models.Trigger]):
             source=fields.get("source", "n8n"),
             url_regex=fields.get("url_regex", ".*"),
             event=fields.get("event", rd.choice(["page_opened", "button_clicked"])),
-            webhook_id=fields.get("webhook_id", str(self.fake.uuid4()))
+            webhook_id=fields.get("webhook_id", str(self.fake.uuid4())),
         )
-    
-    async def create_fake(self, db: AsyncSession, fields: TriggerFields | None = None) -> models.Trigger:
+
+    async def create_fake(
+        self, db: AsyncSession, fields: TriggerFields | None = None
+    ) -> models.Trigger:
         webhook_faker = WebhookFaker()
         if fields is None:
             fields = TriggerFields()
@@ -46,4 +49,3 @@ class TriggerFaker(BaseFaker[models.Trigger]):
         new_trigger = await self.create_fake_object(db, self.get_fake, fields)
 
         return new_trigger
-    

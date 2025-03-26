@@ -12,6 +12,7 @@ from src.app.models.trigger import Trigger as TriggerModel
 from src.app.schemas.trigger import Trigger as TriggerSchema
 from src.app.schemas.trigger import TriggerCreate, TriggerCreateClient, TriggerUpdate
 from src.app.schemas.webhook import WebhookCreate
+from src.app.schemas.user import User as UserSchema
 from src.app.types.events import EventContext, EventType
 
 logger = logging.getLogger(__name__)
@@ -52,12 +53,8 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
     async def list(
         self, event: EventType | None = None, url: str | None = None
     ) -> list[TriggerSchema]:
-        triggers_matching: list[TriggerSchema] = []
         event_triggers = await self.crud.list(event=event)
-        for trigger in event_triggers:
-            if self.should_trigger(trigger, cast(EventContext, {"url": url})):
-                triggers_matching.append(trigger)
-        return triggers_matching
+        return event_triggers
 
     async def update(self, trigger_id: str, trigger: TriggerUpdate) -> TriggerSchema:
         return await self.crud.update(trigger_id, trigger)
@@ -70,6 +67,9 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
             url = context.get("url")
             if url is not None and not re.match(trigger.url_regex, url):
                 return False
+
+        if trigger.user_id is not None and trigger.user_id != context.get("user_id"):
+            return False
 
         if "trigger_id" in context and context["trigger_id"] != trigger.id:
             return False
@@ -100,6 +100,7 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
         self,
         event: EventType,
         context: EventContext,
+        current_user: UserSchema,
         web_push_subscription: dict[str, Any] | None = None,
     ) -> List[WebhookCallResult]:
         triggers_results: list[WebhookCallResult] = []
@@ -110,6 +111,8 @@ class TriggerController(BaseController[TriggerSchema, TriggerModel]):
             triggers = await self.list(event=event)
 
         triggers_to_trigger: list[TriggerSchema] = []
+
+        context["user_id"] = current_user.id
 
         for trigger in triggers:
             if self.should_trigger(trigger, context):

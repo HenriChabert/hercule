@@ -32,13 +32,13 @@ class WebhookController(BaseController[WebhookSchema, WebhookModel]):
 
     async def create(self, webhook: WebhookCreate) -> WebhookSchema:
         return await self.crud.create(webhook)
-    
+
     async def read(
         self, webhook_id: str, allow_none: bool = False
     ) -> WebhookSchema | None:
         webhook = await self.crud.read(webhook_id, allow_none=allow_none)
         return webhook
-    
+
     async def read_safe(self, webhook_id: str) -> WebhookSchema:
         return await self.crud.read_safe(webhook_id)
 
@@ -96,7 +96,7 @@ class WebhookController(BaseController[WebhookSchema, WebhookModel]):
             )
 
             if response.status_code >= 400:
-                await self.webhook_usage_ctrl.update_status(webhook_usage.id, 'error')
+                await self.webhook_usage_ctrl.update_status(webhook_usage.id, "error")
                 raise HTTPException(
                     status_code=400,
                     detail={
@@ -104,7 +104,7 @@ class WebhookController(BaseController[WebhookSchema, WebhookModel]):
                         "message": response.text,
                     },
                 )
-            
-            await self.webhook_usage_ctrl.update_status(webhook_usage.id, 'success')
+
+            await self.webhook_usage_ctrl.update_status(webhook_usage.id, "success")
 
             return response.json()

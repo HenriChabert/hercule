@@ -18,6 +18,7 @@ class TriggerCRUD(BaseCRUD[TriggerSchema, TriggerModel]):
             "name": model.name,
             "source": model.source,
             "url_regex": model.url_regex,
+            "user_id": model.user_id,
             "event": model.event,
             "webhook_id": model.webhook_id,
             "created_at": model.created_at,

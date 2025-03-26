@@ -1,5 +1,5 @@
 import os
-from enum import Enum
+from typing import Literal, TypeAlias, cast
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.config import Config
@@ -41,15 +41,16 @@ class AppSettings(BaseSettings):
     LICENSE_NAME: str | None = config("LICENSE", default=None)
     CONTACT_NAME: str | None = config("CONTACT_NAME", default=None)
     CONTACT_EMAIL: str | None = config("CONTACT_EMAIL", default=None)
+    SECRET_KEY: str = config("JWT_SECRET_KEY", default="your-secret-key-here")
 
 
 class SecuritySettings(BaseSettings):
     HERCULE_PORT: int = config("HERCULE_PORT", default=8000)
     HERCULE_PWD: str = config("HERCULE_PWD", default="")
-    HERCULE_SECRET_KEY: str = config("HERCULE_SECRET_KEY", default="my_secret_key")
-    HERCULE_HEADER_NAME: str = config(
-        "HERCULE_HEADER_NAME", default="X-Hercule-Secret-Key"
-    )
+
+
+class AuthSettings(BaseSettings):
+    AUTH_REQUIRED: bool = config("AUTH_REQUIRED", default=True)
 
 
 class DatabaseSettings(BaseSettings):
@@ -72,17 +73,12 @@ class SQLiteSettings(BaseSettings):
         return f"{self.SQLITE_ASYNC_PREFIX}{self.SQLITE_DB_PATH}"
 
 
-class EnvironmentOption(Enum):
-    TEST = "test"
-    DEV = "dev"
-    LOCAL = "local"
-    STAGING = "staging"
-    PRODUCTION = "production"
+EnvironmentOption: TypeAlias = Literal["test", "dev", "local", "staging", "production"]
 
 
 class EnvironmentSettings(BaseSettings):
-    ENVIRONMENT: EnvironmentOption = config(
-        "ENVIRONMENT", default=EnvironmentOption.LOCAL
+    ENVIRONMENT: EnvironmentOption = cast(
+        EnvironmentOption, config("ENVIRONMENT", default="local")
     )
 
 
@@ -110,6 +106,7 @@ class Settings(
     EnvironmentSettings,
     WebPushSettings,
     ApiSettings,
+    AuthSettings,
     LoggingSettings,
     BaseSettings,
 ):
