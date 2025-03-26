@@ -14,7 +14,6 @@ env_filename = ".env"
 if os.environ.get("ENVIRONMENT") == "test":
     env_filename = ".env.test"
 
-print(os.environ.get("ENVIRONMENT"))
 env_path = os.path.join(project_root_dir, env_filename)
 config = Config(env_path)
 

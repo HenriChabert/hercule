@@ -23,3 +23,6 @@ class Trigger(Base, ModelMixin, IDMixin, TimestampMixin, kw_only=True):
     url_regex: Mapped[str | None] = mapped_column(
         String(255), nullable=True, default=None
     )
+    user_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True, default=None
+    )

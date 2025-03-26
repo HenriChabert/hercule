@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Mapping
+from typing import Annotated, Any, Mapping, cast
 
 from fastapi import APIRouter, Body, Depends, status
 from pydantic import BaseModel
@@ -17,7 +17,6 @@ router = APIRouter(tags=["trigger"], dependencies=[Depends(get_current_user)])
 @router.post("/trigger", status_code=status.HTTP_201_CREATED)
 async def create_trigger(
     trigger: TriggerCreateClient,
-    current_user: Annotated[UserSchema, Depends(get_current_admin_user)],
     db: Annotated[AsyncSession, Depends(async_get_db)],
 ):
     trigger_ctrl = TriggerController(db)
@@ -91,11 +90,14 @@ class TriggerEventPayload(BaseModel):
 @router.post("/triggers/event")
 async def trigger_event(
     payload: TriggerEventPayload,
+    current_user: Annotated[UserSchema, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(async_get_db)],
 ):
     trigger_ctrl = TriggerController(db)
+
     events_results = await trigger_ctrl.trigger_event(
         event=payload.event,
+        current_user=current_user,
         context=payload.context,
         web_push_subscription=payload.web_push_subscription,
     )

@@ -8,6 +8,7 @@ EventType: TypeAlias = Literal[
 
 
 class PageOpenedEventContext(TypedDict):
+    user_id: NotRequired[str]
     html_content: NotRequired[str]
     url: NotRequired[str]
 
@@ -22,6 +23,7 @@ class PageOpenedEvent(TypedDict):
 
 class ManualTriggerInPopupEventContext(TypedDict):
     trigger_id: str
+    user_id: NotRequired[str]
     html_content: NotRequired[str]
     url: NotRequired[str]
 
@@ -36,6 +38,7 @@ class ManualTriggerInPopupEvent(TypedDict):
 
 class ButtonClickedEventContext(TypedDict):
     trigger_id: str
+    user_id: NotRequired[str]
     html_content: NotRequired[str]
     url: NotRequired[str]
 
