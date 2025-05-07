@@ -18,6 +18,7 @@ router = APIRouter(tags=["trigger"], dependencies=[Depends(get_current_user)])
 async def create_trigger(
     trigger: TriggerCreateClient,
     db: Annotated[AsyncSession, Depends(async_get_db)],
+    current_user: Annotated[UserSchema, Depends(get_current_admin_user)],
 ):
     trigger_ctrl = TriggerController(db)
     return await trigger_ctrl.create(trigger)
