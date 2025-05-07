@@ -36,7 +36,7 @@ class BaseCRUD(ABC, Generic[SchemaType, ModelType]):
     async def read(self, id: str, allow_none: bool = False) -> SchemaType | None:
         obj = await self._read_orm(id, allow_none)
         return self.model_to_schema(obj) if obj else None
-    
+
     async def _read_orm_safe(self, id: str) -> ModelType:
         obj = await self._read_orm(id, allow_none=False)
         return cast(ModelType, obj)

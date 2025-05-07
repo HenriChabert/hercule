@@ -17,6 +17,7 @@ wp = WebPush(
     subscriber=settings.SUBSCRIBER_EMAIL,
 )
 
+
 async def send_webpush(
     subscription_data: dict[str, Any], payload: Mapping[str, Any]
 ) -> bool:

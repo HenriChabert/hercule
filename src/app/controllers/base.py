@@ -10,8 +10,9 @@ from src.app.crud.base import BaseCRUD
 SchemaType = TypeVar("SchemaType", bound=BaseModel)
 ModelType = TypeVar("ModelType", bound=Base)
 
+
 class BaseController(ABC, Generic[SchemaType, ModelType]):
     db: AsyncSession
-    
+
     def __init__(self, db: AsyncSession):
         self.db = db

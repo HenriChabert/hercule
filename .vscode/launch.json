@@ -1,21 +1,15 @@
 {
-    "version":"0.2.0",
-    "configurations":[
-      {
-        "name":"Python: Current File",
-        "type":"debugpy",
-        "request":"launch",
-        "purpose":["debug-test"],
-        "program":"${file}",
-        "console":"integratedTerminal",
-        "justMyCode":false
-      },
-      {
-        "name": "Python: Module",
-        "type": "debugpy",
-        "request": "launch",
-        "module": "uvicorn",
-        "args": ["src.app.main:app","--reload"]
-      }
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "FastAPI",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "src.app.main:app",
+                "--reload"
+            ]
+        }
     ]
-  }
+}

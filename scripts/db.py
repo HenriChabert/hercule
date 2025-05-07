@@ -1,51 +1,51 @@
 #! /usr/bin/env python
 import sys
 import os
+import asyncio
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from seed import seed_database
 from src.app.seeders.webhook import WebhookSeeder
 from src.app.seeders.trigger import TriggerSeeder
-from src.app.core.db.database import sync_get_db, reinit_db
+from src.app.core.db.database import session_manager
+from src.app.core.config import settings
+
 
 import click
 
-def seed_database() -> None:
-    reinit_db()
 
-    session = sync_get_db()
+async def reinit_db() -> None:
+    session_manager.init(settings.SQLITE_URI)
+    async with session_manager.connect() as connection:
+        await session_manager.drop_all(connection)
+        await session_manager.create_all(connection)
 
-    trigger_seeder = TriggerSeeder(session)
-    webhook_seeder = WebhookSeeder(session)
 
-    webhooks = webhook_seeder.seed(fields={
-        "url": "https://n8n.andover.ai/webhook-test/test-on-trigger-clicked"
-    })
+async def apply_seed() -> None:
+    await reinit_db()
+    async with session_manager.session() as session:
+        await seed_database(session)
 
-    _ = trigger_seeder.seed(fields={
-        "name": "n8n Webhook Test",
-        "webhook_id": webhooks[-1].id
-    })
-
-    trigger_seeder.seed(n=9)
-
-    session.close()
 
 @click.group()
 def cli():
     pass
 
+
 @cli.command()
 def seed():
     print("Starting database seeding process...")
-    seed_database()
+    asyncio.run(apply_seed())
     print("Database seeding completed successfully!")
-    
+
+
 @cli.command()
 def reset():
     print("Resetting database...")
-    reinit_db()
+    asyncio.run(reinit_db())
     print("Database reset successfully!")
+
 
 if __name__ == "__main__":
     cli()
