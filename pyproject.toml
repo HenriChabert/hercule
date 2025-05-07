@@ -5,6 +5,7 @@ package-mode = false
 description = "Put your browser under steroïds"
 authors = ["Henri Chabert <chabhenrib@gmail.com>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12"
