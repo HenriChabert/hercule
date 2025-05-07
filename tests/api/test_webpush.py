@@ -13,6 +13,7 @@ def test_get_public_key(client_auth: TestClient):
     assert response.json() == {"public_key": settings.APP_SERVER_KEY}
 
 
+@pytest.mark.local_only
 @pytest.mark.asyncio
 async def test_web_push_notification(
     push_test_page: Page,
