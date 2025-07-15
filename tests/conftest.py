@@ -3,14 +3,14 @@ from contextlib import ExitStack
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from playwright.async_api import Browser, BrowserContext, Page, async_playwright
-from webpush import WebPushSubscription  # type: ignore
+from playwright.async_api import BrowserContext, Page, async_playwright
 from sqlalchemy import select
+from webpush import WebPushSubscription  # type: ignore
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(f"{current_dir}/../.env.test", override=True)
 
-from typing import Any, AsyncGenerator, Callable, Generator, cast
+from typing import Any, AsyncGenerator, Callable, Generator
 
 import pytest
 import pytest_asyncio
@@ -18,11 +18,14 @@ from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.session import Session
 
-from src.app.core.config import settings, Settings
 import src.app.core.config as config
+from src.app.core.config import Settings, settings
 from src.app.core.db.database import async_get_db, session_manager
+from src.app.core.security import create_access_token
 from src.app.core.setup import init_app
+from src.app.models.user import User
 
+from .helpers.seed import get_test_admin_user_fields, get_test_user_fields, seed_db
 from .helpers.web_services.test_api.main import create_test_api
 from .helpers.web_services.test_web_server.main import create_static_web_server
 from .helpers.web_services.utils import (
@@ -30,9 +33,6 @@ from .helpers.web_services.utils import (
     run_test_server,
     stop_test_server,
 )
-from .helpers.seed import seed_db, get_test_admin_user_fields, get_test_user_fields
-from src.app.core.security import create_access_token
-from src.app.models.user import User
 
 
 @pytest.fixture(autouse=True)
@@ -57,18 +57,18 @@ def client_anon(client: TestClient):
 @pytest_asyncio.fixture  # type: ignore
 async def test_user(db: AsyncSession):
     test_user_fields = get_test_user_fields()
-    user = await db.execute(
-        select(User).where(User.email == test_user_fields.get("email"))
-    )
-    return user.scalar_one_or_none()
+    user = await db.execute(select(User).where(User.email == test_user_fields.email))
+    user = user.scalar_one_or_none()
+
+    # Refresh the user to ensure it's attached to the session
+    await db.refresh(user)
+    yield user
 
 
 @pytest.fixture
 def client_auth(client: TestClient):
     test_user_fields = get_test_user_fields()
-    access_token = create_access_token(
-        {"sub": cast(str, test_user_fields.get("email"))}
-    )
+    access_token = create_access_token({"sub": test_user_fields.email})
     client.headers["Authorization"] = f"Bearer {access_token}"
     yield client
     client.headers["Authorization"] = ""
@@ -78,7 +78,7 @@ def client_auth(client: TestClient):
 async def test_admin_user(db: AsyncSession):
     test_admin_user_fields = get_test_admin_user_fields()
     user = await db.execute(
-        select(User).where(User.email == test_admin_user_fields.get("email"))
+        select(User).where(User.email == test_admin_user_fields.email)
     )
     return user.scalar_one_or_none()
 
@@ -86,9 +86,7 @@ async def test_admin_user(db: AsyncSession):
 @pytest.fixture
 def client_admin(client: TestClient):
     test_admin_user_fields = get_test_admin_user_fields()
-    access_token = create_access_token(
-        {"sub": cast(str, test_admin_user_fields.get("email"))}
-    )
+    access_token = create_access_token({"sub": test_admin_user_fields.email})
     client.headers["Authorization"] = f"Bearer {access_token}"
     yield client
     client.headers["Authorization"] = ""

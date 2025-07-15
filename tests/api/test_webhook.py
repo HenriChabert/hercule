@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.session import Session
 
 from src.app.models.webhook import Webhook
-from tests.helpers.fakers.webhook import WebhookFaker
+from tests.helpers.fakers.webhook import WebhookFaker, WebhookFields
 
 webhook_faker = WebhookFaker()
 
@@ -87,7 +87,7 @@ async def test_update_webhook_success(db: AsyncSession, client_admin: TestClient
     webhook_id = webhook.id
 
     # Then update it
-    new_fake_webhook = webhook_faker.get_fake(fields={"name": "test"})
+    new_fake_webhook = webhook_faker.get_fake(fields=WebhookFields(name="test"))
     response = client_admin.put(
         f"/api/v1/webhook/{webhook_id}",
         json={

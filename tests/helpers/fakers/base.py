@@ -3,7 +3,6 @@ from typing import Any, Callable, Generic, TypeVar
 
 from faker import Faker
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 
 from src.app.core.db.database import Base
 
@@ -26,8 +25,7 @@ class BaseFaker(ABC, Generic[T]):
         self, db: AsyncSession, fn: Callable[[Any], T], fields: Any | None = None
     ) -> T:
         obj = fn(fields)
-        async with db as session:
-            session.add(obj)
-            await session.commit()
-            await session.refresh(obj)
+        db.add(obj)
+        await db.commit()
+        await db.refresh(obj)
         return obj

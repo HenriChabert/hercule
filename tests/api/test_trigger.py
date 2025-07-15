@@ -8,8 +8,9 @@ from sqlalchemy.orm.session import Session
 
 from src.app.models import Trigger, Webhook, WebhookUsage
 from src.app.models.trigger import Trigger
-from tests.helpers.fakers.trigger import TriggerFaker
-from tests.helpers.fakers.webhook import WebhookFaker
+from src.app.models.user import User
+from tests.helpers.fakers.trigger import TriggerFaker, TriggerFields
+from tests.helpers.fakers.webhook import WebhookFaker, WebhookFields
 
 trigger_faker = TriggerFaker()
 webhook_faker = WebhookFaker()
@@ -152,8 +153,8 @@ async def test_list_triggers(db: AsyncSession, client_auth: TestClient):
 @pytest.mark.asyncio
 async def test_list_triggers_with_event(db: AsyncSession, client_auth: TestClient):
     # Create two triggers
-    _ = await trigger_faker.create_fake(db, {"event": "page_opened"})
-    _ = await trigger_faker.create_fake(db, {"event": "button_clicked"})
+    _ = await trigger_faker.create_fake(db, TriggerFields(event="page_opened"))
+    _ = await trigger_faker.create_fake(db, TriggerFields(event="button_clicked"))
 
     response = client_auth.get("/api/v1/triggers?event=page_opened")
     assert response.status_code == 200
@@ -221,19 +222,42 @@ async def test_run_trigger_success(
 
     webhook = await webhook_faker.create_fake(
         db,
-        {
-            "url": f"{test_api_url}/test_webhook",
-        },
+        WebhookFields(url=f"{test_api_url}/test_webhook"),
     )
 
     trigger = await trigger_faker.create_fake(
         db,
-        {
-            "webhook_id": webhook.id,
-        },
+        TriggerFields(webhook_id=webhook.id),
     )
 
     context = {"url": "https://example.com"}
+
+    response = client_auth.post(
+        f"/api/v1/trigger/{trigger.id}/run",
+        json={"event": trigger.event, "context": context},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+
+
+@pytest.mark.asyncio
+async def test_run_trigger_success_with_user_id(
+    db: AsyncSession, client_auth: TestClient, test_api_url: str, test_user: User
+):
+
+    webhook = await webhook_faker.create_fake(
+        db,
+        WebhookFields(url=f"{test_api_url}/test_webhook"),
+    )
+
+    trigger = await trigger_faker.create_fake(
+        db,
+        TriggerFields(webhook_id=webhook.id, user_id=test_user.id),
+    )
+
+    context = {"url": "https://example.com", "user_id": test_user.id}
 
     response = client_auth.post(
         f"/api/v1/trigger/{trigger.id}/run",
@@ -251,13 +275,11 @@ async def test_trigger_event_success(
 ):
     webhook = await webhook_faker.create_fake(
         db,
-        {
-            "url": f"{test_api_url}/test_webhook",
-        },
+        WebhookFields(url=f"{test_api_url}/test_webhook"),
     )
 
     _ = await trigger_faker.create_fake(
-        db, {"webhook_id": webhook.id, "event": "page_opened"}
+        db, TriggerFields(webhook_id=webhook.id, event="page_opened")
     )
 
     payload = {"url": "https://example.com"}
@@ -285,13 +307,11 @@ async def test_trigger_event_error(
 ):
     webhook = await webhook_faker.create_fake(
         db,
-        {
-            "url": f"{test_api_url}/test_webhook_error",
-        },
+        WebhookFields(url=f"{test_api_url}/test_webhook_error"),
     )
 
     _ = await trigger_faker.create_fake(
-        db, {"webhook_id": webhook.id, "event": "page_opened"}
+        db, TriggerFields(webhook_id=webhook.id, event="page_opened")
     )
 
     payload = {"url": "https://example.com"}
@@ -322,13 +342,11 @@ async def test_trigger_event_show_console_action(
 ):
     webhook = await webhook_faker.create_fake(
         db,
-        {
-            "url": f"{test_api_url}/test_show_console_action",
-        },
+        WebhookFields(url=f"{test_api_url}/test_show_console_action"),
     )
 
     _ = await trigger_faker.create_fake(
-        db, {"webhook_id": webhook.id, "event": "page_opened"}
+        db, TriggerFields(webhook_id=webhook.id, event="page_opened")
     )
 
     payload = {"url": "https://example.com"}

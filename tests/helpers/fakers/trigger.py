@@ -2,6 +2,7 @@ import datetime
 import random as rd
 from typing import NotRequired, TypedDict, cast
 
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app import models
@@ -11,14 +12,16 @@ from .base import BaseFaker
 from .webhook import WebhookFaker, WebhookFields
 
 
-class TriggerFields(TypedDict):
-    id: NotRequired[str]
-    name: NotRequired[str]
-    webhook_id: NotRequired[str]
-    source: NotRequired[TriggerSource]
-    event: NotRequired[EventType]
-    created_at: NotRequired[datetime.datetime]
-    updated_at: NotRequired[datetime.datetime]
+class TriggerFields(BaseModel):
+    id: str | None = None
+    name: str | None = None
+    webhook_id: str | None = None
+    source: TriggerSource | None = None
+    event: EventType | None = None
+    url_regex: str | None = None
+    user_id: str | None = None
+    created_at: datetime.datetime | None = None
+    updated_at: datetime.datetime | None = None
 
 
 class TriggerFaker(BaseFaker[models.Trigger]):
@@ -27,12 +30,13 @@ class TriggerFaker(BaseFaker[models.Trigger]):
             fields = TriggerFields()
 
         return models.Trigger(
-            id=fields.get("id", str(self.fake.uuid4())),
-            name=fields.get("name", self.fake.name()),
-            source=fields.get("source", "n8n"),
-            url_regex=fields.get("url_regex", ".*"),
-            event=fields.get("event", rd.choice(["page_opened", "button_clicked"])),
-            webhook_id=fields.get("webhook_id", str(self.fake.uuid4())),
+            id=fields.id or str(self.fake.uuid4()),
+            name=fields.name or self.fake.name(),
+            source=fields.source or "n8n",
+            url_regex=fields.url_regex or ".*",
+            user_id=fields.user_id or None,
+            event=fields.event or rd.choice(["page_opened", "button_clicked"]),
+            webhook_id=fields.webhook_id or str(self.fake.uuid4()),
         )
 
     async def create_fake(
@@ -42,9 +46,9 @@ class TriggerFaker(BaseFaker[models.Trigger]):
         if fields is None:
             fields = TriggerFields()
 
-        if not "webhook_id" in fields:
+        if fields.webhook_id is None:
             webhook = await webhook_faker.create_fake(db, WebhookFields())
-            fields["webhook_id"] = webhook.id
+            fields.webhook_id = webhook.id
 
         new_trigger = await self.create_fake_object(db, self.get_fake, fields)
 

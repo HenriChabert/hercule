@@ -1,12 +1,13 @@
-import pytest
 import os
+
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.app.core.security import create_access_token
-from tests.helpers.fakers.user import UserFaker
 from src.app.core.config import settings
+from src.app.core.security import create_access_token
 from src.app.models.user import User
+from tests.helpers.fakers.user import UserFaker, UserFields
 
 pytestmark = pytest.mark.asyncio
 
@@ -16,7 +17,7 @@ user_faker = UserFaker()
 @pytest.mark.asyncio
 async def test_auth_login(client_anon: TestClient, db: AsyncSession):
     password = "password"
-    user = await user_faker.create_fake(db, {"password": password})
+    user = await user_faker.create_fake(db, UserFields(password=password))
     response = client_anon.post(
         "/api/v1/auth/login", json={"email": user.email, "password": password}
     )
@@ -27,7 +28,7 @@ async def test_auth_login(client_anon: TestClient, db: AsyncSession):
 @pytest.mark.asyncio
 async def test_auth_login_invalid_password(client_anon: TestClient, db: AsyncSession):
     password = "password"
-    user = await user_faker.create_fake(db, {"password": password})
+    user = await user_faker.create_fake(db, UserFields(password=password))
     response = client_anon.post(
         "/api/v1/auth/login", json={"email": user.email, "password": "invalid"}
     )
@@ -35,7 +36,7 @@ async def test_auth_login_invalid_password(client_anon: TestClient, db: AsyncSes
 
 
 @pytest.mark.asyncio
-async def test_auth_not_required(client_anon: TestClient, db: AsyncSession):
+async def test_auth_not_required(client_anon: TestClient):
     settings.AUTH_REQUIRED = False
     response = client_anon.get("/api/v1/auth/me")
     assert response.status_code == 200
@@ -44,7 +45,7 @@ async def test_auth_not_required(client_anon: TestClient, db: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_auth_me(client_auth: TestClient, db: AsyncSession, test_user: User):
+async def test_auth_me(client_auth: TestClient, test_user: User):
     response = client_auth.get("/api/v1/auth/me")
 
     assert response.status_code == 200
@@ -52,7 +53,7 @@ async def test_auth_me(client_auth: TestClient, db: AsyncSession, test_user: Use
 
 
 @pytest.mark.asyncio
-async def test_auth_me_invalid_token(client_anon: TestClient, db: AsyncSession):
+async def test_auth_me_invalid_token(client_anon: TestClient):
     response = client_anon.get(
         "/api/v1/auth/me", headers={"Authorization": "Bearer invalid"}
     )
